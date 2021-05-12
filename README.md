@@ -19,7 +19,7 @@
 ### Start the Flink Jobmanager and Taskmanager
     - docker-compose up
    
-### Run input stream
+### Run input stream (For App.java flink application)
     - Open terminal and start netcat with below command
     - nc -lk 9000
    
