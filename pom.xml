@@ -82,6 +82,42 @@
       <artifactId>siddhi-core</artifactId>
       <version>3.0.2</version>
     </dependency>
+    <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.12.3</version>
+    </dependency>
+    <!-- Siddhi extensions-->
+    <dependency>
+      <groupId>io.siddhi.extension.execution.json</groupId>
+      <artifactId>siddhi-execution-json</artifactId>
+      <version>2.0.9</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/io.siddhi.extension.execution.string/siddhi-execution-string -->
+    <dependency>
+      <groupId>io.siddhi.extension.execution.string</groupId>
+      <artifactId>siddhi-execution-string</artifactId>
+      <version>5.0.11</version>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/io.siddhi.extension.execution.map/siddhi-execution-map -->
+    <dependency>
+      <groupId>io.siddhi.extension.execution.map</groupId>
+      <artifactId>siddhi-execution-map</artifactId>
+      <version>5.0.6</version>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/io.siddhi.extension.map.json/siddhi-map-json -->
+    <dependency>
+      <groupId>io.siddhi.extension.map.json</groupId>
+      <artifactId>siddhi-map-json</artifactId>
+      <version>5.2.1</version>
+    </dependency>
+
+
+
+
   </dependencies>
 
   <repositories>
