@@ -20,8 +20,8 @@ public class kafkaStreamApp {
     private static final String inputTopic = "EVENT_STREAM_INPUT";
     private static final String outputTopic = "EVENT_STREAM_OUTPUT";
     private static final String consumerGroup = "EVENT_STREAM1";
-    private static final String kafkaAddress = "localhost:9092";
-    private static final String zkAddress = "localhost:2181";
+    private static final String kafkaAddress = "kafka:9092";
+    private static final String zkAddress = "zookeeper:2181";
 
 
     public static void start(){
