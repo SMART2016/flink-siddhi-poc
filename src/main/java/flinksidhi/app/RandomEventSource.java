@@ -1,5 +1,6 @@
-package flinksidhi;
+package flinksidhi.app;
 
+import flinksidhi.Event;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 
 import java.util.Random;

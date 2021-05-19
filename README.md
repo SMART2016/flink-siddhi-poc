@@ -27,3 +27,8 @@
     - open flink dashboard with localhost:8081
     - create jar for the application
     - submit the jar as the JOB to the dashboard.
+    
+ 
+### Running kafka on apple silicon M1
+- git clone https://github.com/wurstmeister/kafka-docker.git
+- build the image locally on the applic m1 machine and use the same in docker-compose

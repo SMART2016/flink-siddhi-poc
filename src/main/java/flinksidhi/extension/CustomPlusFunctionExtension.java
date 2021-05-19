@@ -1,4 +1,4 @@
-package flinksidhi;
+package flinksidhi.extension;
 import io.siddhi.core.config.SiddhiQueryContext;
 import io.siddhi.core.exception.SiddhiAppCreationException;
 import io.siddhi.core.executor.ExpressionExecutor;

@@ -1,4 +1,5 @@
 version: "3"
+
 services:
   jobmanager:
     platform: linux/x86_64
@@ -11,6 +12,7 @@ services:
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager
 
+
   taskmanager:
     platform: linux/x86_64
     image: flink:1.13.0-scala_2.11
@@ -22,3 +24,26 @@ services:
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager
         taskmanager.numberOfTaskSlots: 2
+
+  kafka:
+    build: ./docker/kafka-docker
+    hostname: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_ADVERTISED_PORT: 9092
+      KAFKA_CREATE_TOPICS: "EVENT_STREAM_INPUT:1:1,EVENT_STREAM_OUTPUT:1:1,"
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    depends_on:
+      - zookeeper
+
+
+  zookeeper:
+    image: zookeeper
+    restart: always
+    hostname: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOO_MY_ID: 1
