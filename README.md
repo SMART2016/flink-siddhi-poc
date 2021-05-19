@@ -16,19 +16,56 @@
 		-DarchetypeArtifactId=flink-quickstart-java 
 		-DarchetypeVersion=1.2.1
 		
-### Start the Flink Jobmanager and Taskmanager
-    - docker-compose up
    
-### Run input stream (For App.java flink application)
+### Run flink app with input stream (For App.java flink application)
+    - run App.main()
     - Open terminal and start netcat with below command
-    - nc -lk 9000
+        - nc -lk 9000
+        - input text in the netcat terminal
    
-### Create the application and deploy it as job to the Jobmanager
-    - open flink dashboard with localhost:8081
-    - create jar for the application
-    - submit the jar as the JOB to the dashboard.
-    
- 
+
 ### Running kafka on apple silicon M1
 - git clone https://github.com/wurstmeister/kafka-docker.git
-- build the image locally on the applic m1 machine and use the same in docker-compose
+- build the image locally on the apple m1 machine and use the same in docker-compose
+
+### Running the Flink app (Flink app running as main in Local jvm):
+    - docker-compose -f docker-compose-local.yml up
+    - run the S3SidhiApp.main
+    - ## Produce docker message
+      ./kafka_2.11-2.3.0/bin/kafka-console-producer.sh --broker-list localhost:9092 --topic EVENT_STREAM_INPUT
+      
+      ## Consumer for output topic:
+      ./kafka_2.11-2.3.0/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic EVENT_STREAM_OUTPUT --from-beginning
+      
+      
+      ## Message:
+          {
+              "ID":"12C",
+              "Name":"Dipanjan"
+           }
+
+
+### Running the Flink app (Flink app running as cluster localhost:8081):
+    - For the building the JOB jar used shade to package jar dependencies and create a fat jar.
+        - mvn clean package
+    - docker-compose up
+    - make entry in /etc/hosts and save:
+        127.0.0.1 kafka
+        127.0.0.1 kafka
+    - create jar of the flink app (Job) as below:
+        - mvn clean package
+    - Deploy the job in flink (localhost:8081) with jobmanager by uploading the jar.
+            - open flink dashboard with localhost:8081
+            - create jar for the application
+            - submit the jar as the JOB to the dashboard.
+    - ## Produce docker message
+      ./kafka_2.11-2.3.0/bin/kafka-console-producer.sh --broker-list kafka:9092 --topic EVENT_STREAM_INPUT
+      
+      ## Consumer for output topic:
+      ./kafka_2.11-2.3.0/bin/kafka-console-consumer.sh --bootstrap-server zookeeper:9092 --topic EVENT_STREAM_OUTPUT --from-beginning  
+      
+      ## Input Message:
+          {
+              "ID":"12C",
+              "Name":"Dipanjan"
+           }
