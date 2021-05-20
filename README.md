@@ -49,11 +49,12 @@
     - For the building the JOB jar used shade to package jar dependencies and create a fat jar.
         - mvn clean package
     - docker-compose up
-    - make entry in /etc/hosts and save:
-        127.0.0.1 kafka
-        127.0.0.1 kafka
     - create jar of the flink app (Job) as below:
         - mvn clean package
+    
+    - copy the extension jars to the /opt/flink/lib folder in Jobmanager and taskmanager both
+            - sudo docker cp <src lib folder> <containerid>:/opt/flink/lib
+            - docker restart <containerId>
     - Deploy the job in flink (localhost:8081) with jobmanager by uploading the jar.
             - open flink dashboard with localhost:8081
             - create jar for the application
@@ -69,3 +70,32 @@
               "ID":"12C",
               "Name":"Dipanjan"
            }
+           
+           
+### Issue with Deploying Application to Flink cluster
+   - Siddhi extension function are not identified during runtime as Dynamic loading is failing for the extension code.
+        - TEMP Solution:
+            - copy the jars to the Jobmanager and Task Manager /opt/flink/lib folder explictly:
+                - sudo docker cp <src lib folder> <containerid>:/opt/flink/lib
+            - Restart the containers for Job and Task Manager:
+                - docker restart <containerId>
+        - Permanent Solution:
+            - Create a siddhiCep instance:
+                - SiddhiCEP cep = SiddhiCEP.getSiddhiEnvironment(env);
+            - Register the extension with the cep instance as below:
+                - cep.registerExtension("json:toObject", io.siddhi.extension.execution.json.function.ToJSONObjectFunctionExtension.class);
+                - cep.registerExtension( "json:getString", io.siddhi.extension.execution.json.function.GetStringJSONFunctionExtension.class);
+            - Create DAG as below [use cep.from() instead of define()]:
+                 DataStream<Map<String,Object>> output = cep
+                                .from("inputStream",inputS,"awsS3")
+                                .cql(S3_CQL)
+                                .returnAsMap("outputStream");    
+
+        - Remote Debug:
+            - https://cwiki.apache.org/confluence/display/FLINK/Remote+Debugging+of+Flink+Clusters
+            - https://www.programmersought.com/article/86754644555/
+            
+                
+### Refs
+       - https://blogs.oracle.com/javamagazine/streaming-analytics-with-java-and-apache-flink
+       

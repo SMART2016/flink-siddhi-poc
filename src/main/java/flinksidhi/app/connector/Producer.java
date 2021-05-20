@@ -1,15 +1,35 @@
 package flinksidhi.app.connector;
 
+import flinksidhi.app.util.ConvertJavaMapToJson;
+import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.streaming.util.serialization.KeyedSerializationSchema;
+
+import java.util.Map;
 
 public class Producer {
 
     public static FlinkKafkaProducer<Tuple2> createStringProducer(StreamExecutionEnvironment env, String topic, String kafkaAddress) {
 
         return new FlinkKafkaProducer<Tuple2>(kafkaAddress, topic, new AverageSerializer());
+    }
+
+    public static FlinkKafkaProducer<Map<String,Object>> createMapProducer(StreamExecutionEnvironment env, String topic, String kafkaAddress) {
+
+        return new FlinkKafkaProducer<Map<String,Object>>(kafkaAddress, topic, new SerializationSchema<Map<String, Object>>() {
+            @Override
+            public void open(InitializationContext context) throws Exception {
+
+            }
+
+            @Override
+            public byte[] serialize(Map<String, Object> stringObjectMap) {
+                String json = ConvertJavaMapToJson.convert(stringObjectMap);
+                return json.getBytes();
+            }
+        });
     }
 }
 
