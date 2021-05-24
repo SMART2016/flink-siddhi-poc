@@ -6,16 +6,18 @@ services:
     image: flink:1.13.0-scala_2.11
     ports:
       - "8081:8081"
-#      - "5005:5005"
+      - "5005:5005"
     command: jobmanager
     environment:
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager
         classloader.resolve-order: parent-first
-#        env.java.opts.jobmanager: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005"
-#        env.java.opts.taskmanager: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5006"
-
+        env.java.opts.jobmanager: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005"
+        heartbeat.timeout: 2000000
+        akka.client.timeout: 200min
+        akka.ask.timeout: 200min
+ #       env.java.opts.taskmanager: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5006"
     networks:
       - bridge
 
@@ -25,12 +27,26 @@ services:
     image: flink:1.13.0-scala_2.11
     depends_on:
       - jobmanager
+    ports:
+      - "1099:1099"
+      - "5006:5006"
     command: taskmanager
     environment:
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager
         taskmanager.numberOfTaskSlots: 2
+        heartbeat.timeout: 2000000
+        akka.client.timeout: 10min
+        akka.ask.timeout: 10min
+        env.java.opts.taskmanager: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5006"
+        env.java.opts: "-Dcom.sun.management.jmxremote
+                        -Dcom.sun.management.jmxremote.authenticate=false
+                        -Dcom.sun.management.jmxremote.ssl=false
+                        -Dcom.sun.management.jmxremote.local.only=false
+                        -Dcom.sun.management.jmxremote.port=1099
+                        -Djava.rmi.server.hostname=taskmanager"
+
     networks:
       - bridge
 

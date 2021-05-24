@@ -98,4 +98,5 @@
                 
 ### Refs
        - https://blogs.oracle.com/javamagazine/streaming-analytics-with-java-and-apache-flink
+       - https://stackoverflow.com/questions/54672599/json-file-data-into-kafka-topic
        

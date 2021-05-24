@@ -6,6 +6,7 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.streaming.util.serialization.KeyedSerializationSchema;
+import org.json.JSONObject;
 
 import java.util.Map;
 
@@ -28,6 +29,20 @@ public class Producer {
             public byte[] serialize(Map<String, Object> stringObjectMap) {
                 String json = ConvertJavaMapToJson.convert(stringObjectMap);
                 return json.getBytes();
+            }
+        });
+    }
+    public static FlinkKafkaProducer<JSONObject> createJsonProducer(StreamExecutionEnvironment env, String topic, String kafkaAddress) {
+
+        return new FlinkKafkaProducer<JSONObject>(kafkaAddress, topic, new SerializationSchema<JSONObject>() {
+            @Override
+            public void open(InitializationContext context) throws Exception {
+
+            }
+
+            @Override
+            public byte[] serialize(JSONObject jsonObject) {
+                return jsonObject.toString().getBytes();
             }
         });
     }

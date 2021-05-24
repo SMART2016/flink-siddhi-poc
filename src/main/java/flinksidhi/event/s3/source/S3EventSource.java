@@ -11,7 +11,7 @@ public class S3EventSource implements SourceFunction<String> {
     @Override
     public void run(SourceContext<String> sourceContext)  {
         long timestamp = System.currentTimeMillis();
-        sourceContext.collectWithTimestamp(JsonToS3.getInput(), timestamp);
+        sourceContext.collect(JsonToS3.getInput());
     }
 
     @Override
