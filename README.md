@@ -89,7 +89,16 @@
                  DataStream<Map<String,Object>> output = cep
                                 .from("inputStream",inputS,"awsS3")
                                 .cql(S3_CQL)
-                                .returnAsMap("outputStream");    
+                                .returnAsMap("outputStream");  
+                                
+   - Problem Flink not processing siddhi CEP operation:
+            - https://stackoverflow.com/questions/67656155/not-able-to-process-kafka-json-message-with-flink-siddhi-library/67685761#67685761
+            - Solution:
+                    - Set the time charateristics of the flink execution environment:
+                            - By default flink 1.13 considers event time as the time characteristics and follow below strategy:
+                                    - An incoming element is initially put in a buffer where elements are sorted in ascending order based on their timestamp, and when a watermark arrives, all the elements in this buffer with timestamps smaller than that of the watermark are processed
+                                    - So unless it recieves watermark in the stream , it will not output or process the data in the stream.
+                            - env.setStreamTimeCharacteristic(TimeCharacteristic.ProcessingTime);  
 
         - Remote Debug:
             - https://cwiki.apache.org/confluence/display/FLINK/Remote+Debugging+of+Flink+Clusters

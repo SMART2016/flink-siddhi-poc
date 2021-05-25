@@ -28,7 +28,6 @@ services:
     depends_on:
       - jobmanager
     ports:
-      - "1099:1099"
       - "5006:5006"
     command: taskmanager
     environment:
@@ -40,12 +39,6 @@ services:
         akka.client.timeout: 10min
         akka.ask.timeout: 10min
         env.java.opts.taskmanager: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5006"
-        env.java.opts: "-Dcom.sun.management.jmxremote
-                        -Dcom.sun.management.jmxremote.authenticate=false
-                        -Dcom.sun.management.jmxremote.ssl=false
-                        -Dcom.sun.management.jmxremote.local.only=false
-                        -Dcom.sun.management.jmxremote.port=1099
-                        -Djava.rmi.server.hostname=taskmanager"
 
     networks:
       - bridge

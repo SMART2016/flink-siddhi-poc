@@ -1,13 +1,11 @@
 package flinksidhi.app;
 
-import flinksidhi.app.stream.SingleSiddhiStream;
-import flinksidhi.event.s3.source.S3EventSource;
+import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.streaming.siddhi.SiddhiCEP;
-import org.apache.flink.util.Preconditions;
 
 import java.util.Map;
 
@@ -35,18 +33,26 @@ public class internalStreamSiddhiApp {
 
     public static void start(){
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        DataStream<String> inputS = env.addSource(new S3EventSource());
+        //DataStream<String> inputS = env.addSource(new S3EventSource());
+
+        //Set Time characteristics default is EventTime and it expects proper watermarking to process the data
+        env.setStreamTimeCharacteristic(TimeCharacteristic.ProcessingTime);
 
         //Flink kafka stream consumer
         FlinkKafkaConsumer<String> flinkKafkaConsumer =
                 createInputMessageConsumer(inputTopic, kafkaAddress,zkAddress, consumerGroup);
+
+//        flinkKafkaConsumer.assignTimestampsAndWatermarks(
+//                WatermarkStrategy
+//                .forBoundedOutOfOrderness(Duration.ofSeconds(20)));
+
         //Flink kafka stream Producer
         FlinkKafkaProducer<Map<String, Object>> flinkKafkaProducer =
                 createMapProducer(env,outputTopic, kafkaAddress);
 
 
         //Add Data stream source -- flink consumer
-        //DataStream<String> inputS = env.addSource(flinkKafkaConsumer);
+        DataStream<String> inputS = env.addSource(flinkKafkaConsumer);
         SiddhiCEP cep = SiddhiCEP.getSiddhiEnvironment(env);
 
         cep.registerExtension("json:toObject", io.siddhi.extension.execution.json.function.ToJSONObjectFunctionExtension.class);
@@ -54,12 +60,12 @@ public class internalStreamSiddhiApp {
         cep.registerStream("inputStream", inputS, "awsS3");
 
 
-        inputS.print();
+        //inputS.print();
 
         //json needs extension jars to present during runtime.
         DataStream<Map<String,Object>> output = cep.from("inputStream")
-                .cql(S3_CQL1)
-                .returnAsMap("temp");
+                .cql(S3_CQL)
+                .returnAsMap("outputStream");
 
        //Add Data stream sink -- flink producer
         output.addSink(flinkKafkaProducer);
@@ -71,11 +77,6 @@ public class internalStreamSiddhiApp {
             e.printStackTrace();
         }
 
-    }
-
-    public static <T> SingleSiddhiStream<T> from(String streamId, SiddhiCEP env) {
-        Preconditions.checkNotNull(streamId, "streamId");
-        return new SingleSiddhiStream(streamId, env);
     }
 }
 
