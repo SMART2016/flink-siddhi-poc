@@ -49,10 +49,10 @@ services:
     ports:
       - "9092:9092"
     environment:
-      KAFKA_ADVERTISED_HOST_NAME: kafka
-      KAFKA_ADVERTISED_PORT: 9092
       KAFKA_CREATE_TOPICS: "EVENT_STREAM_INPUT:1:1,EVENT_STREAM_OUTPUT:1:1"
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_ADVERTISED_PORT: 9092
     depends_on:
       - zookeeper
     networks:
@@ -68,6 +68,20 @@ services:
       ZOO_MY_ID: 1
     networks:
       - bridge
+
+#  connect-standalone:
+#    build:
+#      context: docker/kafka-s3-connector
+#      dockerfile: Dockerfile
+#    container_name: connect-standalone
+#    ports:
+#      - 8083:8083
+#    depends_on:
+#      - kafka
+#    volumes:
+#      - /tmp:/tmp
+#    networks:
+#      - bridge
 
 networks:
   bridge:
