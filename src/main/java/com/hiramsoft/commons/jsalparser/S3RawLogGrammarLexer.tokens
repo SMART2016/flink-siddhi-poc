@@ -1,0 +1,11 @@
+NoValue=1
+SimpleValue=2
+DateValue=3
+QuotedValue=4
+DoubleQuotedValue=5
+LINEBREAK=6
+DELIM=7
+ESCAPED_QUOTE=8
+ALLOWED_CHAR=9
+'-'=1
+' '=7
