@@ -1,8 +1,8 @@
-package flinksidhi.event.s3.transform;
+package flinksidhi.app.s3.transform;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import flinksidhi.event.s3.model.Root;
+import flinksidhi.app.s3.model.Root;
 
 
 public class JsonToS3 {

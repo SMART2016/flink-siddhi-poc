@@ -1,6 +1,6 @@
 package flinksidhi;
 
-import flinksidhi.app.RandomEventSource;
+import flinksidhi.app.kafka.RandomEventSource;
 import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;

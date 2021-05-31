@@ -1,4 +1,4 @@
-package flinksidhi.event.s3.transform;
+package flinksidhi.app.s3.transform;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

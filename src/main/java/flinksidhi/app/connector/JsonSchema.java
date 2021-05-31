@@ -1,6 +1,5 @@
 package flinksidhi.app.connector;
 
-import flinksidhi.event.s3.transform.JsonToS3;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;

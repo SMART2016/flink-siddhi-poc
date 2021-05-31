@@ -1,4 +1,4 @@
-package flinksidhi.app;
+package flinksidhi.app.kafka;
 
 import flinksidhi.Event;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;

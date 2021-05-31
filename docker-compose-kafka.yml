@@ -9,7 +9,7 @@ services:
     environment:
       KAFKA_ADVERTISED_HOST_NAME: localhost
       KAFKA_ADVERTISED_PORT: 9092
-      KAFKA_CREATE_TOPICS: "EVENT_STREAM_INPUT:1:1,EVENT_STREAM_OUTPUT:1:1"
+      KAFKA_CREATE_TOPICS: "EVENT_STREAM_INTPUT:1:1,EVENT_STREAM_OUTPUT:1:1"
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
     depends_on:
       - zookeeper
@@ -17,6 +17,7 @@ services:
 
   zookeeper:
     image: zookeeper
+    tmpfs: "/datalog"
     restart: always
     hostname: zookeeper
     ports:

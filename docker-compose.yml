@@ -6,14 +6,13 @@ services:
     image: flink:1.13.0-scala_2.11
     ports:
       - "8081:8081"
-      - "5005:5005"
+#      - "5005:5005"
     command: jobmanager
     environment:
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager
         classloader.resolve-order: parent-first
-        env.java.opts.jobmanager: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005"
         heartbeat.timeout: 2000000
         akka.client.timeout: 200min
         akka.ask.timeout: 200min
@@ -27,8 +26,6 @@ services:
     image: flink:1.13.0-scala_2.11
     depends_on:
       - jobmanager
-    ports:
-      - "5006:5006"
     command: taskmanager
     environment:
       - |
@@ -38,7 +35,7 @@ services:
         heartbeat.timeout: 2000000
         akka.client.timeout: 10min
         akka.ask.timeout: 10min
-        env.java.opts.taskmanager: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5006"
+#        env.java.opts.taskmanager: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5006"
 
     networks:
       - bridge
@@ -49,7 +46,7 @@ services:
     ports:
       - "9092:9092"
     environment:
-      KAFKA_CREATE_TOPICS: "EVENT_STREAM_INPUT:1:1,EVENT_STREAM_OUTPUT:1:1"
+      KAFKA_CREATE_TOPICS: "EVENT_STREAM_OUTPUT_FAILED_ATTEMPT:1:1,EVENT_STREAM_OUTPUT_ACTUAL_ACCESS:1:1,EVENT_STREAM_INPUT:1:1"
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_ADVERTISED_HOST_NAME: kafka
       KAFKA_ADVERTISED_PORT: 9092

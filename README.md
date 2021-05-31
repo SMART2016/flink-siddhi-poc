@@ -104,6 +104,11 @@
             - https://cwiki.apache.org/confluence/display/FLINK/Remote+Debugging+of+Flink+Clusters
             - https://www.programmersought.com/article/86754644555/
             
+   - How to use state checkpointing while using siddhi with flink:
+        - Siddhi uses its own internal state which flink has no idea about
+         and so flink checkpointing will not work with siddhi state by default
+         Unless the sisshi state is not integrated with flink state.
+            
                 
 ### Refs
        - https://blogs.oracle.com/javamagazine/streaming-analytics-with-java-and-apache-flink

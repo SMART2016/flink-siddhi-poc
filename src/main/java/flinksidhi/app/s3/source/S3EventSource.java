@@ -1,8 +1,8 @@
-package flinksidhi.event.s3.source;
+package flinksidhi.app.s3.source;
 
 
 
-import flinksidhi.event.s3.transform.JsonToS3;
+import flinksidhi.app.s3.transform.JsonToS3;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 
 //Just Returns a single instance of the AwsS3 root event

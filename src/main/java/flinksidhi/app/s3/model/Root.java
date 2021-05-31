@@ -1,4 +1,4 @@
-package flinksidhi.event.s3.model;
+package flinksidhi.app.s3.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
