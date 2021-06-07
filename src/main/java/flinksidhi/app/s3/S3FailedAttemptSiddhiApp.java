@@ -9,11 +9,10 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.streaming.siddhi.SiddhiCEP;
 import org.apache.flink.util.Collector;
-
+import flinksidhi.connector.*;
 import java.util.Map;
 
-import static flinksidhi.app.connector.Consumers.createInputMessageConsumer;
-import static flinksidhi.app.connector.Producer.createMapProducer;
+
 
 public class S3FailedAttemptSiddhiApp {
 
@@ -58,7 +57,7 @@ public class S3FailedAttemptSiddhiApp {
         //Add Data stream sink for failed attempts-- flink producer
         //Flink kafka stream Producer
         FlinkKafkaProducer<Map<String, Object>> flinkKafkaProducer =
-                createMapProducer(env,outputTopicFailedAttempt, kafkaAddress);
+                Producer.createMapProducer(env,outputTopicFailedAttempt, kafkaAddress);
 
         failedAttempts.addSink(flinkKafkaProducer);
         failedAttempts.print();
@@ -86,7 +85,7 @@ public class S3FailedAttemptSiddhiApp {
     private static DataStream<String> getInputDataStream(StreamExecutionEnvironment env,String consumerGrp,String kafkaAddr){
         //Flink kafka stream consumer
         FlinkKafkaConsumer<String> flinkKafkaConsumer =
-                createInputMessageConsumer(inputTopic, kafkaAddr,zkAddress, consumerGrp);
+                Consumers.createInputMessageConsumer(inputTopic, kafkaAddr,zkAddress, consumerGrp);
 
         //String containing newline separated lines.
         DataStream<String> inputS = env.addSource(flinkKafkaConsumer);

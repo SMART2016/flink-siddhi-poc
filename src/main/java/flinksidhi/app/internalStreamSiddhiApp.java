@@ -1,6 +1,7 @@
 package flinksidhi.app;
 
-import flinksidhi.event.s3.transform.S3AccessLog;
+import flinksidhi.connector.Consumers;
+import flinksidhi.connector.*;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -12,8 +13,7 @@ import org.apache.flink.util.Collector;
 
 import java.util.Map;
 
-import static flinksidhi.app.connector.Consumers.createInputMessageConsumer;
-import static flinksidhi.app.connector.Producer.createMapProducer;
+import static flinksidhi.app.s3.transform.S3AccessLog.toJson;
 
 public class internalStreamSiddhiApp {
 
@@ -57,7 +57,7 @@ public class internalStreamSiddhiApp {
 
         //Flink kafka stream Producer
         FlinkKafkaProducer<Map<String, Object>> flinkKafkaProducer =
-                createMapProducer(env,outputTopic, kafkaAddress);
+                Producer.createMapProducer(env,outputTopic, kafkaAddress);
 
 
         //Get Input DataStream from Kafka for S3 Access Logs
@@ -94,7 +94,7 @@ public class internalStreamSiddhiApp {
     private static DataStream<String> getInputDataStream(StreamExecutionEnvironment env){
         //Flink kafka stream consumer
         FlinkKafkaConsumer<String> flinkKafkaConsumer =
-                createInputMessageConsumer(inputTopic, kafkaAddress,zkAddress, consumerGroup);
+                Consumers.createInputMessageConsumer(inputTopic, kafkaAddress,zkAddress, consumerGroup);
 
         DataStream<String> inputS = env.addSource(flinkKafkaConsumer);
 
@@ -102,7 +102,7 @@ public class internalStreamSiddhiApp {
         DataStream<String> S3LogMsg = inputS.flatMap(new lineSplitter());
 
         DataStream<String> jsonS3LogMsgs =  inputS.map(s3LogMsg -> {
-            return  S3AccessLog.toJson(s3LogMsg);
+            return  toJson(s3LogMsg);
         });
 
         return jsonS3LogMsgs;

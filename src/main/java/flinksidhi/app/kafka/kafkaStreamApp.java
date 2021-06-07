@@ -9,8 +9,8 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.util.Collector;
 
-import static flinksidhi.app.connector.Consumers.createInputMessageConsumer;
-import static flinksidhi.app.connector.Producer.createStringProducer;
+import static flinksidhi.connector.Consumers.createInputMessageConsumer;
+import static flinksidhi.connector.Producer.createStringProducer;
 
 
 

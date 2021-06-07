@@ -1,6 +1,8 @@
 package flinksidhi.app.s3;
 
 import flinksidhi.app.s3.transform.S3AccessLog;
+import flinksidhi.connector.Consumers;
+import flinksidhi.connector.Producer;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -8,12 +10,14 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.streaming.siddhi.SiddhiCEP;
+import org.apache.flink.streaming.siddhi.control.ControlEvent;
 import org.apache.flink.util.Collector;
 
 import java.util.Map;
+import java.util.Properties;
 
-import static flinksidhi.app.connector.Consumers.createInputMessageConsumer;
-import static flinksidhi.app.connector.Producer.createMapProducer;
+import static flinksidhi.control.ControlStream.getControlStream;
+
 
 public class SiddhiTestApp {
 
@@ -46,7 +50,7 @@ public class SiddhiTestApp {
 
 
 
-    public static void start(){
+    public static void start() throws Exception{
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         //DataStream<String> inputS = env.addSource(new S3EventSource());
 
@@ -62,22 +66,43 @@ public class SiddhiTestApp {
         DataStream<String> inputStream = getInputDataStream(env,"",kafkaAddress);
         cep.registerStream("inputStream", inputStream, "s3log");
 
+        //Get the Rule Stream
+        Properties properties = new Properties();
+        properties.setProperty("bootstrap.servers", kafkaAddress);
+        properties.setProperty("zookeeper.connect",zkAddress );
+        properties.setProperty("group.id","test_rule");
+        DataStream<ControlEvent> ruleControlStream = getControlStream(env);
+                //env.addSource(new FlinkKafkaConsumer("S3_RULE_STREAM_INPUT", new ControlEventSchema(), properties));
+                //
+
+        ruleControlStream.print();
+
         //json needs extension jars to present during runtime.
         //Operator for identifying Failed Attempts to S3 by a user
+//        DataStream<Map<String,Object>> failedAttempts = cep.from("inputStream")
+//                .cql(SIDDHI_PATTERN_TEST_CQL)
+//                .returnAsMap("outputStream");
+
+        //json needs extension jars to present during runtime.
+        //Operator for identifying Failed Attempts to S3 by a user
+        //NOTE: inputstream for event stream and outputstream for evaluated event stream should be configurable
+        //and it should match with the rule in the control stream.
         DataStream<Map<String,Object>> failedAttempts = cep.from("inputStream")
-                .cql(SIDDHI_PATTERN_TEST_CQL)
+                .cql(ruleControlStream)
                 .returnAsMap("outputStream");
+
+
 
         //Add Data stream sink for failed attempts-- flink producer
         //Flink kafka stream Producer
         FlinkKafkaProducer<Map<String, Object>> flinkKafkaProducer =
-                createMapProducer(env,outputTopicFailedAttempt, kafkaAddress);
+                Producer.createMapProducer(env,outputTopicFailedAttempt, kafkaAddress);
 
         failedAttempts.addSink(flinkKafkaProducer);
         failedAttempts.print();
 
         try {
-            env.execute();
+            env.execute("TestSiddhi");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -96,7 +121,7 @@ public class SiddhiTestApp {
     private static DataStream<String> getInputDataStream(StreamExecutionEnvironment env,String consumerGrp,String kafkaAddr){
         //Flink kafka stream consumer
         FlinkKafkaConsumer<String> flinkKafkaConsumer =
-                createInputMessageConsumer(inputTopic, kafkaAddr,zkAddress, consumerGrp);
+                Consumers.createInputMessageConsumer(inputTopic, kafkaAddr,zkAddress, consumerGrp);
 
         //String containing newline separated lines.
         DataStream<String> inputS = env.addSource(flinkKafkaConsumer);
