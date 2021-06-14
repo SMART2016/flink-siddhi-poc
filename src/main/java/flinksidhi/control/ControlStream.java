@@ -14,7 +14,7 @@ import java.lang.reflect.InvocationTargetException;
 public class ControlStream {
 
     //They will be going to configurations
-    private static final String ruleTopic = "S3_RULE_STREAM_INPUT";
+    private static final String ruleTopic = "RULE_STREAM_INPUT";
     private static final String streamName = "s3ruleStream";
     private static final String consumerName = "s3ruleConsumer";
     private static final int parallalism = 1;

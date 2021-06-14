@@ -4,17 +4,26 @@ import flinksidhi.app.s3.transform.S3AccessLog;
 import flinksidhi.connector.Consumers;
 import flinksidhi.connector.Producer;
 import org.apache.flink.api.common.functions.FlatMapFunction;
+import org.apache.flink.api.common.state.ValueState;
+import org.apache.flink.api.common.state.ValueStateDescriptor;
+import org.apache.flink.api.common.typeinfo.TypeHint;
+import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.api.java.functions.KeySelector;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.co.RichCoFlatMapFunction;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.streaming.siddhi.SiddhiCEP;
+import org.apache.flink.streaming.siddhi.SiddhiStream;
 import org.apache.flink.streaming.siddhi.control.ControlEvent;
 import org.apache.flink.util.Collector;
+import org.json.JSONObject;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 
 import static flinksidhi.control.ControlStream.getControlStream;
 
@@ -23,11 +32,11 @@ public class SiddhiTestApp {
 
 
 
-    private static final String inputTopic = "EVENT_STREAM_INPUT";
-    private static final String outputTopicFailedAttempt = "EVENT_STREAM_OUTPUT";
-    //private static final String consumerGroup = "EVENT_STREAM1";
     private static final String kafkaAddress = "localhost:9092";
     private static final String zkAddress = "localhost:2181";
+    private static final String outputTopicFailedAttempt = "EVENT_STREAM_OUTPUT";
+    //private static final String consumerGroup = "EVENT_STREAM1";
+
 
     //The query says:
     //for each event fro inputstream , create a json obect from the event string message and insert the object into temp table.
@@ -56,6 +65,7 @@ public class SiddhiTestApp {
 
         //Set Time characteristics default is EventTime and it expects proper watermarking to process the data
         env.setStreamTimeCharacteristic(TimeCharacteristic.ProcessingTime);
+        env.setParallelism(1);
 
         //Create Siddhi Env and register siddhi extensions
         SiddhiCEP cep = SiddhiCEP.getSiddhiEnvironment(env);
@@ -63,35 +73,22 @@ public class SiddhiTestApp {
         cep.registerExtension( "json:getString", io.siddhi.extension.execution.json.function.GetStringJSONFunctionExtension.class);
 
         //Get Input DataStream from Kafka for S3 Access Logs
-        DataStream<String> inputStream = getInputDataStream(env,"",kafkaAddress);
+        DataStream<String> inputStream = getInputDataStream(env).filter(r -> r != null && r.trim() != "" && r.contains("s3log"));
+        DataStream<ControlEvent> ruleStream = getRuleStream(env).filter(r -> r != null );
+
+        ruleStream.print();
+        //DataStream<String> finalDataStream = inputStream.keyBy(new DataKeySelector()).connect(ruleStream.keyBy(new RuleKeySelector())).flatMap( new DataCollector());
+
+
+        //json needs extension jars to present during runtime.
+        //Operator for identifying Failed Attempts to S3 by a user
+        final Map<String,String> queryMap =new HashMap<>();
         cep.registerStream("inputStream", inputStream, "s3log");
 
-        //Get the Rule Stream
-        Properties properties = new Properties();
-        properties.setProperty("bootstrap.servers", kafkaAddress);
-        properties.setProperty("zookeeper.connect",zkAddress );
-        properties.setProperty("group.id","test_rule");
-        DataStream<ControlEvent> ruleControlStream = getControlStream(env);
-                //env.addSource(new FlinkKafkaConsumer("S3_RULE_STREAM_INPUT", new ControlEventSchema(), properties));
-                //
 
-        ruleControlStream.print();
-
-        //json needs extension jars to present during runtime.
-        //Operator for identifying Failed Attempts to S3 by a user
-//        DataStream<Map<String,Object>> failedAttempts = cep.from("inputStream")
-//                .cql(SIDDHI_PATTERN_TEST_CQL)
-//                .returnAsMap("outputStream");
-
-        //json needs extension jars to present during runtime.
-        //Operator for identifying Failed Attempts to S3 by a user
-        //NOTE: inputstream for event stream and outputstream for evaluated event stream should be configurable
-        //and it should match with the rule in the control stream.
-        DataStream<Map<String,Object>> failedAttempts = cep.from("inputStream")
-                .cql(ruleControlStream)
-                .returnAsMap("outputStream");
-
-
+        SiddhiStream.SingleSiddhiStream<String> singleSiddhiS = cep.from("inputStream");
+        SiddhiStream.ExecutionSiddhiStream ess = singleSiddhiS.cql(ruleStream);
+        DataStream<Map<String,Object>> failedAttempts = ess.returnAsMap("outputStream");
 
         //Add Data stream sink for failed attempts-- flink producer
         //Flink kafka stream Producer
@@ -118,10 +115,12 @@ public class SiddhiTestApp {
         }
     }
 
-    private static DataStream<String> getInputDataStream(StreamExecutionEnvironment env,String consumerGrp,String kafkaAddr){
+    private static DataStream<String> getInputDataStream(StreamExecutionEnvironment env){
+        String inputTopic = "EVENT_STREAM_INPUT";
+        String consumerGrp = "";
         //Flink kafka stream consumer
         FlinkKafkaConsumer<String> flinkKafkaConsumer =
-                Consumers.createInputMessageConsumer(inputTopic, kafkaAddr,zkAddress, consumerGrp);
+                Consumers.createInputMessageConsumer(inputTopic, kafkaAddress,zkAddress, consumerGrp);
 
         //String containing newline separated lines.
         DataStream<String> inputS = env.addSource(flinkKafkaConsumer);
@@ -135,5 +134,79 @@ public class SiddhiTestApp {
         });
 
         return jsonS3LogMsgs;
+    }
+
+
+
+    private static DataStream<ControlEvent> getRuleStream(StreamExecutionEnvironment env) throws Exception {
+        //json needs extension jars to present during runtime.
+        //Operator for identifying Failed Attempts to S3 by a user
+        //NOTE: inputstream for event stream and outputstream for evaluated event stream should be configurable
+        //and it should match with the rule in the control stream.
+        DataStream<ControlEvent> ruleControlStream = getControlStream(env);
+        return ruleControlStream;
+    }
+
+}
+
+/**
+ * Example Rule STream record :
+ * {
+ *     "key": "S3_LOG",
+ *     "rule":""
+ * }
+ */
+class RuleKeySelector implements KeySelector<String,String>{
+    @Override
+    public String getKey(String rule) throws Exception {
+        JSONObject ruleJson = new JSONObject(rule);
+        return ruleJson.getString("key");
+    }
+}
+
+/**
+ * Example Data STream record :
+ * {
+ *     "key": "S3_LOG",
+ *     "s3log":{ // JSON for S3 log object ....}
+ * }
+ */
+class DataKeySelector implements KeySelector<String,String>{
+    @Override
+    public String getKey(String data) throws Exception {
+        JSONObject dataJson = new JSONObject(data);
+        return dataJson.getString("key");
+    }
+}
+
+class DataCollector extends RichCoFlatMapFunction<String, String, String> {
+
+    private ValueState<String> ruleState = null;
+
+    @Override
+    public void open(Configuration config) {
+        ValueStateDescriptor<String> descriptor = new ValueStateDescriptor<String>(
+                // state name
+                "rule",
+                // type information of state
+                TypeInformation.of(new TypeHint<String>() {
+                }));
+        ruleState = getRuntimeContext().getState(descriptor);
+    }
+
+    @Override
+    public void flatMap2(String rule, Collector<String> out) throws Exception {
+        JSONObject ruleJson = new JSONObject(rule);
+        String ruleStr = ruleJson.getString("rule");
+        ruleState.update(ruleStr);
+    }
+
+    @Override
+    public void flatMap1(String data, Collector<String> out) throws Exception {
+        if (ruleState.value() != "") {
+            JSONObject dataJson = new JSONObject(data);
+            dataJson.append("rule",ruleState.value());
+            out.collect(dataJson.toString());
+        }
     }
 }

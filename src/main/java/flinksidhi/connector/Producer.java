@@ -20,10 +20,7 @@ public class Producer {
     public static FlinkKafkaProducer<Map<String,Object>> createMapProducer(StreamExecutionEnvironment env, String topic, String kafkaAddress) {
 
         return new FlinkKafkaProducer<Map<String,Object>>(kafkaAddress, topic, new SerializationSchema<Map<String, Object>>() {
-            @Override
-            public void open(InitializationContext context) throws Exception {
 
-            }
 
             @Override
             public byte[] serialize(Map<String, Object> stringObjectMap) {
@@ -35,10 +32,6 @@ public class Producer {
     public static FlinkKafkaProducer<JSONObject> createJsonProducer(StreamExecutionEnvironment env, String topic, String kafkaAddress) {
 
         return new FlinkKafkaProducer<JSONObject>(kafkaAddress, topic, new SerializationSchema<JSONObject>() {
-            @Override
-            public void open(InitializationContext context) throws Exception {
-
-            }
 
             @Override
             public byte[] serialize(JSONObject jsonObject) {

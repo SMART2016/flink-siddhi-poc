@@ -9,9 +9,6 @@ import org.apache.flink.streaming.siddhi.control.ControlEvent;
 import org.apache.flink.streaming.siddhi.control.MetadataControlEvent;
 import org.apache.flink.util.Collector;
 
-/**
- * Transforms a rule control event to a siddhi rule control event.
- */
 
 public final class ControlEventTransformer implements
         FlatMapFunction<RuleControlEvent, ControlEvent> {

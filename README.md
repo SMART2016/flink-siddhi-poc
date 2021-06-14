@@ -70,7 +70,15 @@
               "ID":"12C",
               "Name":"Dipanjan"
            }
-           
+   
+### Flink siddhi notes:
+    - AbstractSiddhiOperator.registerInputAndOutput() handles input stream and output stream mapping
+    - Siddhi as Java lib:
+        https://siddhi.io/en/v5.1/docs/siddhi-as-a-java-library/ 
+    - Query Guide:
+        https://siddhi.io/en/v5.1/docs/query-guide/   
+    - For control stream to work on local setup set the parallism of the flink execution environment to 1, 
+    because by default the control operator has parallalism as number of cores.    
            
 ### Issue with Deploying Application to Flink cluster
    - **Siddhi extension function are not identified during runtime as Dynamic loading is failing for the extension code.**

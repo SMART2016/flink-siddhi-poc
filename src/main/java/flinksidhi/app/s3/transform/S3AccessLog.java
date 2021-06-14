@@ -13,7 +13,7 @@ import java.util.List;
 public class S3AccessLog {
 
     public static String toJson(String logs){
-        StringBuilder sb = new StringBuilder("{ \"s3log\": ");
+        StringBuilder sb = new StringBuilder("{ \"key\": \"S3_LOG\",\"s3log\": ");
         String jsonS3LogEntry = "";
         List<S3LogEntry> entries = JSalParser.parseS3Log(logs);
 
