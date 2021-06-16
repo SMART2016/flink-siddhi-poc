@@ -140,7 +140,7 @@
         - **Problem 2:** Siddhi was not able to recognize the control event class and which property of the class carries the query:
         
             - **Solution**: Implemeted a transformer to convert simple control stream event POJO to siddhi operator.
-                            - flinksidhi.control.transform.ControlEventTransformer
+                            - ControlEventTransformer
                
             
                 

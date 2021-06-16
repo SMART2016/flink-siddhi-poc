@@ -1,0 +1,34 @@
+---
+flink:
+  streamTimeCharacteristic: "ProcessingTime" # ProcessingTime|IngestionTime|EventTime
+  job:
+    groupId: "${spring.application.name}-group"
+    name: "${spring.application.name}"
+    parallelism: "1"
+
+kafka:
+  bootstrapServers: "localhost:9092"
+  zookeeperConnect: "localhost:2181"
+  events:
+    sources:
+      - topic: "json-event-stream-input"
+        siddhiStreamName: "jsonInputStream"
+        substreams:
+          - streamName: "s3"
+            type: "aws.S3"
+        parallelism: "1"
+    sink:
+      topic: "json-event-stream-output"
+      siddhiStreamName: "outputstream"
+  rules:
+    sources:
+      - topic: "si-simple-rules" # topic name where rules control events are published
+        siddhiStreamName: "simplerulesStream"
+        substreams:
+          - streamName: "s3"
+            type: "aws.s3"
+
+spring:
+  application:
+    name: "SIFlinkJob"
+...

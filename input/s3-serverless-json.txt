@@ -1,0 +1,102 @@
+{
+  "links": [
+    {
+      "access": null, 
+      "display_level": 0, 
+      "id": 1, 
+      "mapping_description": "receivesTrafficFrom", 
+      "mapping_type": "userGroupToResource", 
+      "source": "27", 
+      "source_type": "userDefinedGroup", 
+      "target": "serverlessimagehandler-demobucket-yrfzixsfvimz", 
+      "target_type": "aws.S3"
+    }, 
+    {
+      "access": null, 
+      "display_level": 1, 
+      "id": 2, 
+      "mapping_description": "receivesTrafficFrom", 
+      "mapping_type": "userGroupToResource", 
+      "source": "h3llyt4zx3", 
+      "source_type": "aws.APIGateway", 
+      "target": "27", 
+      "target_type": "userDefinedGroup"
+    }, 
+    {
+      "access": null, 
+      "display_level": 2, 
+      "id": 3, 
+      "mapping_description": "isPartOf", 
+      "mapping_type": "resourceToResource", 
+      "source": "ir49qc", 
+      "source_type": "aws.APIGatewayResource", 
+      "target": "h3llyt4zx3", 
+      "target_type": "aws.APIGateway"
+    }, 
+    {
+      "access": null, 
+      "display_level": 2, 
+      "id": 4, 
+      "mapping_description": "isAssociatedWith", 
+      "mapping_type": "resourceToResource", 
+      "source": "E25XEUW98T3TIN", 
+      "source_type": "aws.CloudFrontDistribution", 
+      "target": "h3llyt4zx3", 
+      "target_type": "aws.APIGateway"
+    }, 
+    {
+      "access": null, 
+      "display_level": 3, 
+      "id": 4, 
+      "mapping_description": "receivesTrafficFrom", 
+      "mapping_type": "resourceToResource", 
+      "source": "arn:aws:lambda:us-east-1:400124916560:function:ServerlessImageHandler-ImageHandlerFunction-Pb9ltCnSN6sw", 
+      "source_type": "aws.Lambda", 
+      "target": "ir49qc", 
+      "target_type": "aws.APIGatewayResource"
+    }, 
+    {
+      "access": null, 
+      "display_level": 4, 
+      "id": 5, 
+      "mapping_description": "isIn", 
+      "mapping_type": "userGroupToResource", 
+      "source": "27", 
+      "source_type": "userDefinedGroup", 
+      "target": "arn:aws:lambda:us-east-1:400124916560:function:ServerlessImageHandler-ImageHandlerFunction-Pb9ltCnSN6sw", 
+      "target_type": "aws.Lambda"
+    }
+  ], 
+  "nodes": [
+    {
+      "id": "serverlessimagehandler-demobucket-yrfzixsfvimz", 
+      "name": "serverlessimagehandler-demobucket-yrfzixsfvimz", 
+      "resource_type": "aws.S3"
+    }, 
+    {
+      "id": "27", 
+      "name": "ServerlessImageHandler-/{proxy+}-service", 
+      "resource_type": "userDefinedGroup"
+    }, 
+    {
+      "id": "h3llyt4zx3", 
+      "name": "ServerlessImageHandler", 
+      "resource_type": "aws.APIGateway"
+    }, 
+    {
+      "id": "ir49qc", 
+      "name": "/{proxy+}", 
+      "resource_type": "aws.APIGatewayResource"
+    }, 
+    {
+      "id": "E25XEUW98T3TIN", 
+      "name": "arn:aws:cloudfront::400124916560:distribution/E25XEUW98T3TIN", 
+      "resource_type": "aws.CloudFrontDistribution"
+    }, 
+    {
+      "id": "arn:aws:lambda:us-east-1:400124916560:function:ServerlessImageHandler-ImageHandlerFunction-Pb9ltCnSN6sw", 
+      "name": "ServerlessImageHandler-ImageHandlerFunction-Pb9ltCnSN6sw", 
+      "resource_type": "aws.Lambda"
+    }
+  ]
+}
