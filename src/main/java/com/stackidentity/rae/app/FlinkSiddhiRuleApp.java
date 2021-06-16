@@ -39,7 +39,7 @@ public class FlinkSiddhiRuleApp {
         DataStream<String> inputStream = getInputDataStream(env).filter(r -> r != null && r.trim() != "" && r.contains("s3log"));
         DataStream<ControlEvent> ruleStream = getRuleStream(env).filter(r -> r != null );
 
-        inputStream.split()
+
 
         //Create Siddhi Env and register siddhi extensions
         SiddhiCEP cep = SiddhiCEP.getSiddhiEnvironment(env);
