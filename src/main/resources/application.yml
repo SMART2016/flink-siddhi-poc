@@ -9,24 +9,27 @@ flink:
 kafka:
   bootstrapServers: "localhost:9092"
   zookeeperConnect: "localhost:2181"
-  events:
+  events: # Event will have a main source stream which will be split into multiple substreams based on the below configuration of substream list per source.
     sources:
-      - topic: "json-event-stream-input"
-        siddhiStreamName: "jsonInputStream"
+      - topic: "log-event-stream-input" ## log file structure
+        siddhiStreamName: "logInputStream"
         substreams:
-          - streamName: "s3"
-            type: "aws.S3"
+          - streamName: "s3-access-log" ## final Substream name will be logInputStream-s3-access-log
+            type: "s3.access.log"
+            serde: ""
         sink:
           topic: "json-event-stream-output"
           outputStreamName: "outputstream"
-  rules:
-    sources:
+  rules: # Rule will have a main source stream which will be split into multiple substreams based on the below configuration of substream list per source.
+    sources: ## Always will be a json data from any source
       - topic: "si-simple-rules" # Main topic/source name where rules control events are published
         controlStreamName: "simplerulesStream"
-        mappingSourceDataStream : "${kafka.events.sources[0].siddhiStreamName}" #NOTE: This has to match with one of the kafka.events.sources.[x].siddhiStreamName
+        mappingSourceDataStream : "${kafka.events.sources[0].siddhiStreamName}" #NOTE: This has to match with one of the
+                                                                                # kafka.events.sources.[x].siddhiStreamName
         subStreams:
-          - streamName: "s3"
-            type: "aws.s3"
+          - streamName: "s3-access-log" ## final rule Substream name will be logInputStream-s3-access-log, this is needed to
+                                        # map the rule substream with the data substream which catter to common types.
+            type: "s3.access.log"
 
 spring:
   application:

@@ -3,7 +3,7 @@ package com.stackidentity.rae.app.control.transform;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.stackidentity.rae.app.control.event.model.RuleControlEvent;
+import com.stackidentity.rae.app.control.model.RuleControlEvent;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.streaming.siddhi.control.ControlEvent;
 import org.apache.flink.streaming.siddhi.control.MetadataControlEvent;

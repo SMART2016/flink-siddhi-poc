@@ -3,7 +3,9 @@ package com.stackidentity.rae.app.config;
 
 import com.stackidentity.rae.app.connector.Consumers;
 import com.stackidentity.rae.app.control.ControlStream;
-import com.stackidentity.rae.app.s3.transform.S3AccessLog;
+import com.stackidentity.rae.app.control.model.RuleControlEvent;
+import com.stackidentity.rae.app.serde.StringSchemaSerDe;
+import com.stackidentity.rae.app.testapps.s3.transform.S3AccessLog;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -72,11 +74,20 @@ public class JobConfigurator {
     return kafkaProperties;
   }
 
+  /**
+   * Returns a map containing list of substream from data stream and substream from main control stream for a common substream name.
+   * @param env
+   * @return Map<String,List<DataStream<?>>>
+   *                   key(String): The Main Data stream name
+   *                   Value (List<DataStream>) :
+   *                                              - The list containing main Datastream at the 0th index,
+   *                                              - Main Control(Rule) stream in the 1st index
+   */
   public Map<String,List<DataStream<?>>> getInputAndRuleDataStreams(StreamExecutionEnvironment env){
     Properties kafkaProps = getKafkaConfigProperties();
     Map<String,List<DataStream<?>>> streamMap = new HashMap<>();
 
-    //Populate input Source main Streams
+    //Populate splitted input Source  SubStreams from main input source(kafka topic) from config
     EventSources eventSources = config.getEventSources();
     List<Source> iSources = eventSources.getSources();
 
@@ -87,7 +98,7 @@ public class JobConfigurator {
 
       //Flink kafka stream consumer
       FlinkKafkaConsumer<String> flinkKafkaConsumer =
-              Consumers.getInputJsonMessageConsumer(s.getTopic(), kafkaProps);
+              Consumers.createKafkaConsumerFor(s.getTopic(), kafkaProps,new StringSchemaSerDe());
 
       //String containing newline separated lines.
       DataStream<?> inputS = env.addSource(flinkKafkaConsumer).name(s.getSiddhiStreamName()).setParallelism(config.getFlinkJobParallelism());
@@ -118,13 +129,109 @@ public class JobConfigurator {
 
     return streamMap;
   }
-  private static DataStream<ControlEvent> getRuleStream(StreamExecutionEnvironment env,String ruleTopic,String StreamName,int parallalism) throws Exception {
+
+  /**
+   * Returns a map containing splitted streams of all main data and control streams based on the application.xml configurations
+   * @param mainDataStreams
+   * @param mainRuleStreams
+   * @return Map<String, List<DataStream<?>>>
+   *          - Key : <mainstream name> + - + <the substream name>
+   *          - value: List [ data substream   , rule substream] corresponding to the above key.
+   *TODO: Now it will used DataStream.split() to slit main stream into multiple named substreams , but will be replaced by side output soon
+   * TODO: Add comments for why split the main data and rule source streams ?
+   * TODO: check if same thing is possible with Source operators or not ?
+   */
+  public Map<String, List<DataStream<?>>> getSplittedDataAndControlStream(Map<String ,DataStream<?>> mainDataStreams , Map<String ,DataStream<RuleControlEvent>> mainRuleStreams){
+    Map<String, List<DataStream<?>>> splittedStreams = new HashMap<>();
+
+    //The list if of size 2 containing
+    //INDEX 0: substream for the main dataStreams based on the substream configuration for each main stream.
+    //INDEX 1: substream for the main rule/control stream based on the substream configuration for each main rule streams.
+    List<DataStream<?>> dataAndRuleStream = new ArrayList<>(2);
+
+    //TODO: Next steps ....
+
+    return splittedStreams;
+  }
+
+  /**
+   * Returns the Main set of input data source streams for all Kafka input stream topics or other sources.
+   * NOTE: Right now the main source for input data is kafka
+   * @return Map<String ,DataStream<?>> main input datastreams corresponding to the input source
+   *          - Applies general String deserialization on the incoming data
+   */
+  public Map<String ,DataStream<?>> getMainInputSourceStreams(StreamExecutionEnvironment env){
+    Map<String,DataStream<?>> mainStreamMap = new HashMap<>();
+
+    //Read config kafka.events.sources
+    EventSources eventSources = config.getEventSources();
+
+    //Read config kafka.events.sources.<Source.java>
+    List<Source> iSources = eventSources.getSources();
+    System.out.println("Event Source "+eventSources);
+
+    for (Source s : iSources){
+      //Flink kafka stream consumer
+      FlinkKafkaConsumer<String> flinkKafkaConsumer =
+              Consumers.createKafkaConsumerFor(s.getTopic(), getKafkaConfigProperties(),new StringSchemaSerDe());
+
+      //String containing newline separated lines.
+      DataStream<?> inputS = env.addSource(flinkKafkaConsumer).name(s.getSiddhiStreamName()).setParallelism(config.getFlinkJobParallelism());
+      mainStreamMap.put(s.getSiddhiStreamName(),inputS);
+    }
+    return mainStreamMap;
+  }
+
+
+  /**
+   * Returns the Main set of control(Rule) source streams for all Kafka input stream topics or other sources.
+   * NOTE: Right now the main source for input data is kafka
+   * @return Map<String ,DataStream<RuleControlEvent>> main input datastreams corresponding to the input source
+   *          - Applies general String deserialization on the incoming data
+   */
+  public Map<String ,DataStream<RuleControlEvent>> getMainControlSourceStreams(StreamExecutionEnvironment env){
+    Map<String,DataStream<RuleControlEvent>> mainRuleStreamMap = new HashMap<>();
+
+    //Read config kafka.rules.sources
+    RuleSources ruleSources = config.getRuleSources();
+
+    //Read config kafka.rules.sources.<Source.java>
+    List<RuleSource> rSources = ruleSources.getSources();
+
+    System.out.println("Rule Sources "+rSources);
+
+    for (RuleSource r : rSources){
+      //Flink kafka control stream consumer
+      DataStream<RuleControlEvent> mainRuleStream = null;
+      try {
+        mainRuleStream = getRuleControlStream(env, r.getTopic(), r.getControlStreamName(), config.getFlinkJobParallelism());
+      }catch (Exception e){
+        e.printStackTrace();
+      }
+      mainRuleStreamMap.put(r.getMappingSourceDataStream(),mainRuleStream);
+    }
+
+    //TODO: Use on spliited control stream return ruleControlStream.flatMap(new ControlEventTransformer()).uid("rule-transformer").name("rule-transformer");
+    return mainRuleStreamMap;
+  }
+
+  private DataStream<ControlEvent> getRuleStream(StreamExecutionEnvironment env, String ruleTopic, String StreamName, int parallalism) throws Exception {
     //json needs extension jars to present during runtime.
     //Operator for identifying Failed Attempts to S3 by a user
     //NOTE: inputstream for event stream and outputstream for evaluated event stream should be configurable
     //and it should match with the rule in the control stream.
     ControlStream s = new ControlStream();
-    DataStream<ControlEvent> ruleControlStream = s.getControlStream(env,ruleTopic,StreamName,parallalism);
+    DataStream<ControlEvent> ruleControlStream = s.getControlStream(env,getKafkaConfigProperties(),ruleTopic,StreamName,parallalism);
+    return ruleControlStream;
+  }
+
+  private DataStream<RuleControlEvent> getRuleControlStream(StreamExecutionEnvironment env, String ruleTopic, String StreamName, int parallalism) throws Exception {
+    //json needs extension jars to present during runtime.
+    //Operator for identifying Failed Attempts to S3 by a user
+    //NOTE: inputstream for event stream and outputstream for evaluated event stream should be configurable
+    //and it should match with the rule in the control stream.
+    ControlStream s = new ControlStream();
+    DataStream<RuleControlEvent> ruleControlStream = s.getRuleControlStream(env,getKafkaConfigProperties(),ruleTopic,StreamName,parallalism);
     return ruleControlStream;
   }
 

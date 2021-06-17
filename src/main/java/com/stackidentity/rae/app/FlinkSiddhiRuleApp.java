@@ -30,8 +30,8 @@ public class FlinkSiddhiRuleApp {
         //Initialize flink execution environment
         StreamExecutionEnvironment env = configurator.getConfiguredFlinkEnvironment();
 
-        //Get Input DataStream from Kafka for S3 Access Logs
-        //TODO: Split the input stream and rule stream to resource specific streams based on resource types.
+        //Get Main Input DataStream and Control streams from Kafka as configured in application.xml
+        //The key for the Map is the main stream name and the value is a List of Datastreams for Data and Control(Rule)
         Map<String, List<DataStream<?>>> inputAndRuleStreams = configurator.getInputAndRuleDataStreams(env);
 
         //.filter(r -> r != null && r.trim() != "" && r.contains("s3log"));
@@ -39,7 +39,7 @@ public class FlinkSiddhiRuleApp {
         //Initialize siddhi environment with required extensions
         SiddhiCEP cep = configurator.initSiddhiCEPEnv(env);
 
-
+        //TODO: Split the input stream and rule stream to resource specific streams based on resource types.
         inputAndRuleStreams.forEach((name, lstStreams) -> {
             //json needs extension jars to present during runtime.
             //Operator for identifying Failed Attempts to S3 by a user
