@@ -29,7 +29,7 @@
 - build the image locally on the apple m1 machine and use the same in docker-compose
 
 ### Running the Flink app (Flink app running as main in Local jvm):
-    - docker compose down && docker image prune -a && docker compose rm -sf && docker-compose build --no-cache -f docker-compose-kafka.yml && docker compose -f docker-compose-kafka.yml up
+    - docker compose down && docker image prune -a && docker compose -f docker-compose-kafka.yml build --no-cache && docker compose -f docker-compose-kafka.yml up
     - run the S3SidhiApp.main
     - ## Produce docker message
       ./kafka_2.11-2.3.0/bin/kafka-console-producer.sh --broker-list localhost:9092 --topic EVENT_STREAM_INPUT

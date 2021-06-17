@@ -20,4 +20,5 @@ public class Source implements Serializable {
   private String siddhiStreamName;
   private int parallelism;
   private List<SubStream> substreams;
+  private Sink sink;
 }

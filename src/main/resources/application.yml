@@ -16,15 +16,15 @@ kafka:
         substreams:
           - streamName: "s3"
             type: "aws.S3"
-        parallelism: "1"
-    sink:
-      topic: "json-event-stream-output"
-      siddhiStreamName: "outputstream"
+        sink:
+          topic: "json-event-stream-output"
+          outputStreamName: "outputstream"
   rules:
     sources:
-      - topic: "si-simple-rules" # topic name where rules control events are published
-        siddhiStreamName: "simplerulesStream"
-        substreams:
+      - topic: "si-simple-rules" # Main topic/source name where rules control events are published
+        controlStreamName: "simplerulesStream"
+        mappingSourceDataStream : "${kafka.events.sources[0].siddhiStreamName}" #NOTE: This has to match with one of the kafka.events.sources.[x].siddhiStreamName
+        subStreams:
           - streamName: "s3"
             type: "aws.s3"
 

@@ -18,4 +18,5 @@ import java.util.List;
 @ToString
 public class EventSources {
   private List<Source> sources;
+  private Sink sink;
 }

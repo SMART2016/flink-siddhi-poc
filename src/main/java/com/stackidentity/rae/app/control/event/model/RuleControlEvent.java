@@ -8,6 +8,7 @@ package com.stackidentity.rae.app.control.event.model;
  * 			"ruleversion": "1.0",
  * 			"disabled": false,
  * 		    "action":"add",
+ * 		    "type": "s3_access_log",
  * 			"ruleDefinition": "from inputStream select json:toObject(s3log) as obj insert into temp;
  * 			from temp select json:getString(obj,'$.s3log.requestId') as access_requester,
  * 			json:getString(obj,'$.s3log.httpStatus') as attempted_response,
@@ -25,8 +26,17 @@ public class RuleControlEvent {
     private String ruleId;
     private String ruleversion;
     private String ruleDefinition;
+    private String type;
     private boolean disabled;
     private String action;
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
 
     public String getRuleId() {
         return ruleId;

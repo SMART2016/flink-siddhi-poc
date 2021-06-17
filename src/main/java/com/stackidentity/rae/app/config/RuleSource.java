@@ -4,18 +4,20 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@ConfigurationProperties(prefix = AppConfigConstants.KAFKA_RULES)
 @Component
-// lombok
+//lombok
 @Getter
 @Setter
 @NoArgsConstructor
 @ToString
-public class RuleSources {
-    private List<RuleSource> sources;
+public class RuleSource{
+    private String topic;
+    private String controlStreamName;
+    private int parallelism;
+    private List<SubStream> subStreams;
+    private String mappingSourceDataStream;
 }

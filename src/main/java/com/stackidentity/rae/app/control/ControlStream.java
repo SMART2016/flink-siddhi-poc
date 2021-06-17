@@ -19,18 +19,16 @@ import java.lang.reflect.InvocationTargetException;
 public class ControlStream {
 
     //They will be going to configurations
-    private static final String ruleTopic = "RULE_STREAM_INPUT";
-    private static final String streamName = "s3ruleStream";
+
     private static final String consumerName = "s3ruleConsumer";
-    private static final int parallalism = 1;
 
 
 
-    public DataStream<ControlEvent> getControlStream(final StreamExecutionEnvironment env)
+    public DataStream<ControlEvent> getControlStream(final StreamExecutionEnvironment env, final String topic, final String streamName,int parallalism)
             throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
 
         FlinkKafkaConsumer<RuleControlEvent> rulesConsumer =
-                KafkaRuleConsumer.getControlStream(ruleTopic, new ControlEventSerDeSchema());
+                KafkaRuleConsumer.getControlStream(topic, new ControlEventSerDeSchema());
 
         DataStream<RuleControlEvent> ruleControlStream = env.addSource(rulesConsumer,streamName).uid(consumerName).name(consumerName).setParallelism(parallalism);
 

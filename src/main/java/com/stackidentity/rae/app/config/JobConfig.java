@@ -39,11 +39,11 @@ public class JobConfig implements AppConfigConstants {
     @Value("${" + KAFKA_BOOTSTRAP_SERVERS + "}")
     private String kafkaBootstrapServers;
 
-    @Value("${" + KAFKA_EVENTS_SINK_TOPIC + "}")
-    private String kafkaEventsSinkTopic;
+//    @Value("${" + KAFKA_EVENTS_SINK_TOPIC + "}")
+//    private String kafkaEventsSinkTopic;
 
-    @Value("${" + KAFKA_EVENTS_SINK_SIDDHI_STREAM_NAME + "}")
-    private String kafkaEventsSinkSiddhiStreamName;
+//    @Value("${" + KAFKA_EVENTS_SINK_SIDDHI_STREAM_NAME + "}")
+//    private String kafkaEventsSinkSiddhiStreamName;
 
     @Value("${" + FLINK_JOB_GROUP_ID + "}")
     private String flinkJobGroupId;
