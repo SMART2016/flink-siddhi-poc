@@ -1,19 +1,20 @@
 package com.stackidentity.rae.app.config;
 
 
+import com.stackidentity.rae.app.config.util.Stream;
 import com.stackidentity.rae.app.connector.Consumers;
 import com.stackidentity.rae.app.control.ControlStream;
 import com.stackidentity.rae.app.control.model.RuleControlEvent;
 import com.stackidentity.rae.app.serde.StringSchemaSerDe;
-import com.stackidentity.rae.app.testapps.s3.transform.S3AccessLog;
+import com.stackidentity.rae.app.transformer.EventTransformer;
+import com.stackidentity.rae.app.transformer.RuleTransformer;
+import com.stackidentity.rae.app.transformer.S3AccessLog;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.siddhi.SiddhiCEP;
 import org.apache.flink.streaming.siddhi.control.ControlEvent;
-import org.apache.flink.util.Collector;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import java.util.*;
@@ -26,12 +27,22 @@ public class JobConfigurator {
   private final String GROUP_ID = "group.id";
 
   private final JobConfig config;
+  private static final Map<String, EventTransformer<?,?>> eventTranformRepo = new HashMap<>();
 
   public JobConfigurator(final JobConfig config, ConfigurableApplicationContext ctx) {
     super();
     this.config = config;
   }
 
+  public void initTransformers(){
+    eventTranformRepo.put("s3.access.log",new S3AccessLog());
+    eventTranformRepo.put("rule-transformer",new RuleTransformer());
+    eventTranformRepo.put("json-transformer",null);
+  }
+
+  public EventTransformer<?,?> getTransformer(String transformerName){
+    return eventTranformRepo.get(transformerName);
+  }
   /**
    * Initialize and return Flink execution environment
    * @return StreamExecutionEnvironment
@@ -132,33 +143,118 @@ public class JobConfigurator {
 
   /**
    * Returns a map containing splitted streams of all main data and control streams based on the application.xml configurations
-   * @param mainDataStreams
-   * @param mainRuleStreams
+   * @param mainDataStreams : map of multiple main data streams as configured
+   *                          - Each main stream will need to be splitted to substreams based on the matching "type"
+   *                            in the event to the corresponding matching substream type.
+   *                          - key : main data stream names
+   *                          - Value: main input data streams
+   * @param mainRuleStreams: map of multiple control/rule streams as configured, each main rule stream is mapped to a
+   *                       main data stream with the property "mappingSourceDataStream" in application.xml
+   *                       - key : main data stream names
+   *                       - Value: control / rule data streams
    * @return Map<String, List<DataStream<?>>>
-   *          - Key : <mainstream name> + - + <the substream name>
-   *          - value: List [ data substream   , rule substream] corresponding to the above key.
-   *TODO: Now it will used DataStream.split() to slit main stream into multiple named substreams , but will be replaced by side output soon
+   *          - Keys : <mainstream name> + - + <the substream name>
+   *          - values: List [ data substream   , rule substream] corresponding to the above key.
    * TODO: Add comments for why split the main data and rule source streams ?
    * TODO: check if same thing is possible with Source operators or not ?
    */
   public Map<String, List<DataStream<?>>> getSplittedDataAndControlStream(Map<String ,DataStream<?>> mainDataStreams , Map<String ,DataStream<RuleControlEvent>> mainRuleStreams){
     Map<String, List<DataStream<?>>> splittedStreams = new HashMap<>();
 
-    //The list if of size 2 containing
+    //The list is of size 2 containing:
     //INDEX 0: substream for the main dataStreams based on the substream configuration for each main stream.
     //INDEX 1: substream for the main rule/control stream based on the substream configuration for each main rule streams.
     List<DataStream<?>> dataAndRuleStream = new ArrayList<>(2);
 
     //TODO: Next steps ....
+    //Read config kafka.events.sources
+    EventSources eventSources = config.getEventSources();
+
+    //Read config kafka.events.sources.<Source.java>
+    List<Source> iSources = eventSources.getSources();
+
+    //Populates the final data and control stream map for each source stream by splitting the source stream to substreams.
+    for (Source s : iSources){
+
+      splittedStreams = getSubStreamsForData((DataStream<String>) mainDataStreams.get(s.getSiddhiStreamName()),s,splittedStreams);
+
+    }
+
+    //Populate Rule Source main Stream
+    RuleSources ruleSources = config.getRuleSources();
+    List<RuleSource> rSources = ruleSources.getSources();
+
+    for (RuleSource r : rSources){
+       splittedStreams = getSubStreamsForRule(mainRuleStreams.get(r.getMappingSourceDataStream()),r,splittedStreams);
+    }
 
     return splittedStreams;
   }
+
+  /**
+   * populates the final map for data and control stream based on the source stream type (log,json)
+   * @param mainStream
+   * @param s
+   * @param splittedStreams
+   * @return
+   */
+  private Map<String,List<DataStream<?>>> getSubStreamsForData(DataStream<String> mainStream,Source s,final Map<String,List<DataStream<?>>> splittedStreams){
+    List<SubStream> subStreams = s.getSubstreams();
+    switch (s.getStreamType()){
+      case "log":
+            SubStream singleSubStream = subStreams.get(0);
+            Map<String, DataStream<String>> subStreamMap  = Stream.splitLogStream(mainStream,(EventTransformer<String,String>)getTransformer(singleSubStream.getTransformer()),singleSubStream.getType());
+            List<DataStream<?>> dataAndControlLst = new ArrayList<>(2);
+            String subStreamName = Stream.getSubStreamName(s.getSiddhiStreamName(),singleSubStream.getType());
+            dataAndControlLst.add(0,subStreamMap.get(singleSubStream.getType()));
+            splittedStreams.put(subStreamName,dataAndControlLst);
+            break;
+      case "json":
+            break;
+      default:
+          System.out.println("Invalid Source Stream type");
+    }
+    return splittedStreams;
+  }
+
+  /**
+   * populates the final map for data and control stream based on the rule stream
+   * @param ruleStream
+   * @param r
+   * @param splittedStreams: it contains the datastream for the mapping rule stream in the list already against the key: <maindatastream>-<substream>
+   * @return
+   */
+  private Map<String,List<DataStream<?>>> getSubStreamsForRule(DataStream<RuleControlEvent> ruleStream,RuleSource r,final Map<String,List<DataStream<?>>> splittedStreams){
+    List<SubStream> subStreams = r.getSubStreams();
+    Map<String,EventTransformer<DataStream<RuleControlEvent>,DataStream<ControlEvent>>> subStreamConf = new HashMap<>();
+
+    for (SubStream s : subStreams){
+      //EventTransformer<DataStream<RuleControlEvent>,DataStream<ControlEvent>> t = getTransformer(s.getTransformer());
+       subStreamConf.put(s.getType(),(EventTransformer<DataStream<RuleControlEvent>,DataStream<ControlEvent>>)getTransformer(s.getTransformer()) );
+    }
+
+    Map<String, DataStream<ControlEvent>> controlStreamMap = Stream.splitRuleStream(ruleStream,subStreamConf);
+
+    //Iterate over the control streams map
+    //get the final stream name <maindatastream>-<rulesubstreamtype>
+    //fetch the List<DataStream<?>> to add the corresponding rule stream to the respective data stream
+    controlStreamMap.forEach((ruleSubstreamType,ruleSubStream) -> {
+      String subStreamName = Stream.getSubStreamName(r.getMappingSourceDataStream(),ruleSubstreamType);
+      List<DataStream<?>> lst = splittedStreams.get(subStreamName);
+      lst.add(1,ruleStream);
+    });
+
+    return splittedStreams;
+  }
+
 
   /**
    * Returns the Main set of input data source streams for all Kafka input stream topics or other sources.
    * NOTE: Right now the main source for input data is kafka
    * @return Map<String ,DataStream<?>> main input datastreams corresponding to the input source
    *          - Applies general String deserialization on the incoming data
+   *          - Key: main stream names
+   *          - Value: Datastream w.r.t to the mainstream
    */
   public Map<String ,DataStream<?>> getMainInputSourceStreams(StreamExecutionEnvironment env){
     Map<String,DataStream<?>> mainStreamMap = new HashMap<>();
@@ -176,7 +272,7 @@ public class JobConfigurator {
               Consumers.createKafkaConsumerFor(s.getTopic(), getKafkaConfigProperties(),new StringSchemaSerDe());
 
       //String containing newline separated lines.
-      DataStream<?> inputS = env.addSource(flinkKafkaConsumer).name(s.getSiddhiStreamName()).setParallelism(config.getFlinkJobParallelism());
+      DataStream<?> inputS = env.addSource(flinkKafkaConsumer).uid(s.getSiddhiStreamName()).name(s.getSiddhiStreamName()).setParallelism(config.getFlinkJobParallelism());
       mainStreamMap.put(s.getSiddhiStreamName(),inputS);
     }
     return mainStreamMap;
@@ -188,6 +284,8 @@ public class JobConfigurator {
    * NOTE: Right now the main source for input data is kafka
    * @return Map<String ,DataStream<RuleControlEvent>> main input datastreams corresponding to the input source
    *          - Applies general String deserialization on the incoming data
+   *          - key : mappingSourceDataStream from application.xml
+   *          - Value: The Rule COntrol Event Datastream
    */
   public Map<String ,DataStream<RuleControlEvent>> getMainControlSourceStreams(StreamExecutionEnvironment env){
     Map<String,DataStream<RuleControlEvent>> mainRuleStreamMap = new HashMap<>();
@@ -215,6 +313,8 @@ public class JobConfigurator {
     return mainRuleStreamMap;
   }
 
+
+
   private DataStream<ControlEvent> getRuleStream(StreamExecutionEnvironment env, String ruleTopic, String StreamName, int parallalism) throws Exception {
     //json needs extension jars to present during runtime.
     //Operator for identifying Failed Attempts to S3 by a user
@@ -235,26 +335,14 @@ public class JobConfigurator {
     return ruleControlStream;
   }
 
-  private static DataStream<String> getS3LogJsonStream(DataStream<String> inputS){
+  private  DataStream<String> getS3LogJsonStream(DataStream<String> inputS){
     //Created stream from each line in the input stream
-    DataStream<String> S3LogMsg = inputS.flatMap(new lineSplitter());
+    //DataStream<String> S3LogMsg = inputS.flatMap(new lineSplitter());
 
     //Converted each line to JSON
-    DataStream<String> jsonS3LogMsgs =  inputS.map(s3LogMsg -> {
-      return  S3AccessLog.toJson(s3LogMsg);
-    });
-
+    EventTransformer<DataStream<String>, DataStream<String>> t =  (EventTransformer<DataStream<String>, DataStream<String>>) getTransformer("s3.access.log");
+    DataStream<String> jsonS3LogMsgs =  t.transform(inputS);
     return jsonS3LogMsgs;
   }
-
-  public static class lineSplitter implements FlatMapFunction<String, String> {
-    @Override
-    public void flatMap(String sentence, Collector<String> out) throws Exception {
-      for (String line: sentence.split("\n")) {
-        out.collect(line);
-      }
-    }
-  }
-
 
 } // class JobConfigurator ends

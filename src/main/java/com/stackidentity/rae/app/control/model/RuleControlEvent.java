@@ -26,15 +26,15 @@ public class RuleControlEvent {
     private String ruleId;
     private String ruleversion;
     private String ruleDefinition;
-    private String type;
+    private String[] type;
     private boolean disabled;
     private String action;
 
-    public String getType() {
+    public String[] getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(String[] type) {
         this.type = type;
     }
 
