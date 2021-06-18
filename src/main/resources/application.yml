@@ -21,9 +21,9 @@ kafka:
         subStreamType: "single"
         substreams:                       ## NOTE: right now S3 log main stream will have only one
                                             #substream nothing else
-          - streamName: "s3.access.log"   ## final Substream name will be logInputStream-s3.access.log
+          - streamName: "s3_access_log"   ## final Substream name will be logInputStream-s3.access.log
                                             # the type and the stream name will be same and this will correspond to the type in each data
-            type: "s3.access.log"         ## this is used for matching input data event type
+            type: "s3_access_log"         ## this is used for matching input data event type
             transformer: "s3-access-log"
             fields:
               - s3log
@@ -38,10 +38,10 @@ kafka:
         mappingSourceDataStream : "${kafka.events.sources[0].siddhiStreamName}" ## NOTE: This has to match with one of the
                                                                                 # kafka.events.sources.[x].siddhiStreamName
         subStreams:
-          - streamName: "s3.access.log"   ## final rule Substream name will be logInputStream-s3-access-log, this is needed to
+          - streamName: "s3_access_log"   ## final rule Substream name will be logInputStream-s3-access-log, this is needed to
                                           # map the rule substream with the data substream which catter to common types.
                                           # the type and the stream name will be same and this will correspond to the type in each data
-            type: "s3.access.log"         #NOT USED RIGHT NOW
+            type: "s3_access_log"
             transformer: "rule-transformer"
 spring:
   application:

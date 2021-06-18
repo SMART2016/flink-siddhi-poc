@@ -74,6 +74,8 @@ public class FlinkSiddhiRuleApp {
             outputStream.print();
         });
 
+
+
         try {
             env.execute(jobConfig.getJobName());
         } catch (Exception e) {

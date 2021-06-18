@@ -15,7 +15,7 @@ public class S3AccessLog implements EventTransformer<DataStream<String>,DataStre
 
 
     private String marshal(String record){
-        StringBuilder sb = new StringBuilder("{ \"type\": \"s3.access.log\",\"s3log\": ");
+        StringBuilder sb = new StringBuilder("{ \"type\": \"s3_access_log\",\"s3log\": ");
         String jsonS3LogEntry = "";
         List<S3LogEntry> entries = JSalParser.parseS3Log(record);
 
