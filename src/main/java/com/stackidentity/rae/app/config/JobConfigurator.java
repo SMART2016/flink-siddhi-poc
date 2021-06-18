@@ -141,6 +141,17 @@ public class JobConfigurator {
     return streamMap;
   }
 
+
+  /**
+   * Generates the out stream by applying Siddhi CEP transformation on the finalDataAndRuleStream which contains
+   * Data stream and mapping rule stream
+   * @param finalDataAndRuleStream
+   * @return
+   */
+  public List<DataStream<Map<String, Object>>> getTransformedOutputStreams( Map<String, List<DataStream<?>>> finalDataAndRuleStream){
+    List<DataStream<Map<String, Object>>> outStreamLst = new ArrayList<>();
+    return outStreamLst;
+  }
   /**
    * Returns a map containing splitted streams of all main data and control streams based on the application.xml configurations
    * @param mainDataStreams : map of multiple main data streams as configured

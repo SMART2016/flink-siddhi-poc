@@ -50,7 +50,12 @@ public class FlinkSiddhiRuleApp {
         Map<String, List<DataStream<?>>> combinedDataAndRuleStream = configurator.getSplittedDataAndControlStream(inputDataStreams,ruleControlStream);
 
         //TODO: code to generate output streams from the above combined rule and data stream
-        //code ....
+        List<DataStream<Map<String, Object>>> outStreams = configurator.getTransformedOutputStreams(combinedDataAndRuleStream);
+
+        //Print the out stream to the sink
+        for(DataStream<Map<String, Object>> out: outStreams){
+            out.print();
+        }
 
         //TODO: Split the input stream and rule stream to resource specific streams based on resource types.
         inputAndRuleStreams.forEach((name, lstStreams) -> {
