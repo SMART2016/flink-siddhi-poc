@@ -13,7 +13,7 @@ public class ConvertJavaMapToJson {
         ObjectMapper objectMapper = new ObjectMapper();
 
         try {
-                 json = objectMapper.writeValueAsString(m);
+            json = objectMapper.writeValueAsString(m);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }

@@ -18,9 +18,9 @@ public class Producer {
         return new FlinkKafkaProducer<Tuple2>(kafkaAddress, topic, new AverageSerializer());
     }
 
-    public static FlinkKafkaProducer<Map<String,Object>> createMapProducer(StreamExecutionEnvironment env, String topic, String kafkaAddress) {
+    public static FlinkKafkaProducer<Map<String, Object>> createMapProducer(StreamExecutionEnvironment env, String topic, String kafkaAddress) {
 
-        return new FlinkKafkaProducer<Map<String,Object>>(kafkaAddress, topic, new SerializationSchema<Map<String, Object>>() {
+        return new FlinkKafkaProducer<Map<String, Object>>(kafkaAddress, topic, new SerializationSchema<Map<String, Object>>() {
 
 
             @Override
@@ -30,6 +30,7 @@ public class Producer {
             }
         });
     }
+
     public static FlinkKafkaProducer<JSONObject> createJsonProducer(StreamExecutionEnvironment env, String topic, String kafkaAddress) {
 
         return new FlinkKafkaProducer<JSONObject>(kafkaAddress, topic, new SerializationSchema<JSONObject>() {
@@ -50,7 +51,7 @@ class AverageSerializer implements KeyedSerializationSchema<Tuple2> {
 
     @Override
     public byte[] serializeValue(Tuple2 element) {
-        String value = "{"+ element.getField(0).toString()+": "+ element.getField(1).toString() + "}";
+        String value = "{" + element.getField(0).toString() + ": " + element.getField(1).toString() + "}";
         return value.getBytes();
     }
 

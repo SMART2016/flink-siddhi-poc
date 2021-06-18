@@ -26,16 +26,16 @@ import org.springframework.stereotype.Component;
 @NoArgsConstructor
 @ToString
 public class JobConfig implements AppConfigConstants {
-    
+
     @Value("${" + SPRING_APP_NAME + "}")
     private String appName;
-    
+
     @Value("${" + FLINK_JOB_NAME + "}")
     private String jobName;
-    
+
     @Value("${" + KAFKA_ZOOKEEPER_CONNECT + "}")
     private String zookeeperServers;
-    
+
     @Value("${" + KAFKA_BOOTSTRAP_SERVERS + "}")
     private String kafkaBootstrapServers;
 

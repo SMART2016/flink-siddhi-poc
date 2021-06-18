@@ -12,12 +12,12 @@ import java.util.List;
 
 public class S3AccessLog {
 
-    public static String toJson(String logs){
+    public static String toJson(String logs) {
         StringBuilder sb = new StringBuilder("{ \"type\": \"s3.access.log\",\"s3log\": ");
         String jsonS3LogEntry = "";
         List<S3LogEntry> entries = JSalParser.parseS3Log(logs);
 
-        for(int i=0;i<entries.size();i++) {
+        for (int i = 0; i < entries.size(); i++) {
             S3LogEntry entry = entries.get(i);
             // Creating Object of ObjectMapper define in Jackson API
             ObjectMapper mapper = new ObjectMapper();

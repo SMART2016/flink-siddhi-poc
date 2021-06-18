@@ -9,14 +9,15 @@ import java.nio.charset.StandardCharsets;
 
 public class JsonSchemaSerDe implements EventSerDeSchema<JSONObject> {
 
-    public JsonSchemaSerDe(){
+    public JsonSchemaSerDe() {
 
     }
+
     @Override
     public JSONObject deserialize(byte[] message) throws IOException {
         JSONObject json = null;
         try {
-             json = new JSONObject(new String(message, StandardCharsets.UTF_8));
+            json = new JSONObject(new String(message, StandardCharsets.UTF_8));
         } catch (JSONException e) {
             e.printStackTrace();
         }

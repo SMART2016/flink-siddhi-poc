@@ -8,10 +8,10 @@ import java.util.Map;
 
 /**
  * Created by ihiram on 8/27/14.
- *
+ * <p>
  * Because of the header line, we have to process each line according to the simple schema defined. One of the fastest
  * ways I know to write this is by using a builder pattern.
- *
+ * <p>
  * This class is used only by the ANTLR grammar.
  */
 class CloudFrontWebLogBuilder {

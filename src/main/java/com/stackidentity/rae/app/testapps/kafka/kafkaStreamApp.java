@@ -23,15 +23,15 @@ public class kafkaStreamApp {
     private static final String zkAddress = "localhost:2181";
 
 
-    public static void start(){
+    public static void start() {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         //Flink kafka stream consumer
         FlinkKafkaConsumer<String> flinkKafkaConsumer =
-                createInputMessageConsumer(inputTopic, kafkaAddress,zkAddress, consumerGroup);
+                createInputMessageConsumer(inputTopic, kafkaAddress, zkAddress, consumerGroup);
 
         //Flink kafka stream Producer
         FlinkKafkaProducer<Tuple2> flinkKafkaProducer =
-                Producer.createStringProducer(env,outputTopic, kafkaAddress);
+                Producer.createStringProducer(env, outputTopic, kafkaAddress);
 
         //Add Data stream source -- flink consumer
         DataStream<String> inputMessagesStream = env.addSource(flinkKafkaConsumer);
@@ -51,15 +51,16 @@ public class kafkaStreamApp {
         }
     }
 
-    public static FlinkKafkaConsumer<String> createInputMessageConsumer(String topic, String kafkaAddress, String zookeeprAddr, String kafkaGroup ) {
+    public static FlinkKafkaConsumer<String> createInputMessageConsumer(String topic, String kafkaAddress, String zookeeprAddr, String kafkaGroup) {
         Properties properties = new Properties();
         properties.setProperty("bootstrap.servers", kafkaAddress);
         properties.setProperty("zookeeper.connect", zookeeprAddr);
-        properties.setProperty("group.id",kafkaGroup);
+        properties.setProperty("group.id", kafkaGroup);
         FlinkKafkaConsumer<String> consumer = new FlinkKafkaConsumer<String>(
-                topic,new SimpleStringSchema(),properties);
+                topic, new SimpleStringSchema(), properties);
         return consumer;
     }
+
     public static final class Tokenizer implements FlatMapFunction<String, Tuple2<String, Integer>> {
         @Override
         public void flatMap(String value, Collector<Tuple2<String, Integer>> out) {

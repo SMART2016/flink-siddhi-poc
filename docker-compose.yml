@@ -6,7 +6,7 @@ services:
     image: flink:1.13.0-scala_2.11
     ports:
       - "8081:8081"
-#      - "5005:5005"
+    #      - "5005:5005"
     command: jobmanager
     environment:
       - |
@@ -16,7 +16,7 @@ services:
         heartbeat.timeout: 2000000
         akka.client.timeout: 200min
         akka.ask.timeout: 200min
- #       env.java.opts.taskmanager: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5006"
+    #       env.java.opts.taskmanager: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5006"
     networks:
       - bridge
 
@@ -35,7 +35,7 @@ services:
         heartbeat.timeout: 2000000
         akka.client.timeout: 10min
         akka.ask.timeout: 10min
-#        env.java.opts.taskmanager: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5006"
+    #        env.java.opts.taskmanager: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5006"
 
     networks:
       - bridge

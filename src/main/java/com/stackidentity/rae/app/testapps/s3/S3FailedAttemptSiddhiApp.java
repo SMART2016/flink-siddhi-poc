@@ -26,15 +26,14 @@ public class S3FailedAttemptSiddhiApp {
     private static final String zkAddress = "localhost:2181";
 
 
-    private static final String S3_ACCESSLOG_FAILED_ATTEMPT_CQL ="from inputStream select json:toObject(s3log) as obj insert into temp;" +
-    "from temp select json:getString(obj,'$.s3log.requestId') as access_requester,json:getString(obj,'$.s3log.bucket') as accessed_bucket,json:getString(obj,'$.s3log.operation') as attempted_action,"+
-    "json:getString(obj,'$.s3log.httpStatus') as attempted_response,json:getString(obj,'$.s3log.errorCode') as attempted_error insert into temp2;"+
-    "from temp2#window.time(10 sec) select access_requester,accessed_bucket,attempted_response,attempted_error,count() as attempts group by access_requester," +
+    private static final String S3_ACCESSLOG_FAILED_ATTEMPT_CQL = "from inputStream select json:toObject(s3log) as obj insert into temp;" +
+            "from temp select json:getString(obj,'$.s3log.requestId') as access_requester,json:getString(obj,'$.s3log.bucket') as accessed_bucket,json:getString(obj,'$.s3log.operation') as attempted_action," +
+            "json:getString(obj,'$.s3log.httpStatus') as attempted_response,json:getString(obj,'$.s3log.errorCode') as attempted_error insert into temp2;" +
+            "from temp2#window.time(10 sec) select access_requester,accessed_bucket,attempted_response,attempted_error,count() as attempts group by access_requester," +
             "accessed_bucket having attempted_response == '404' and attempts > 3 insert into outputStream;";
 
 
-
-    public static void start(){
+    public static void start() {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         //DataStream<String> inputS = env.addSource(new S3EventSource());
 
@@ -44,23 +43,23 @@ public class S3FailedAttemptSiddhiApp {
         //Create Siddhi Env and register siddhi extensions
         SiddhiCEP cep = SiddhiCEP.getSiddhiEnvironment(env);
         cep.registerExtension("json:toObject", io.siddhi.extension.execution.json.function.ToJSONObjectFunctionExtension.class);
-        cep.registerExtension( "json:getString", io.siddhi.extension.execution.json.function.GetStringJSONFunctionExtension.class);
+        cep.registerExtension("json:getString", io.siddhi.extension.execution.json.function.GetStringJSONFunctionExtension.class);
 
         //Get Input DataStream from Kafka for S3 Access Logs
-        DataStream<String> inputStream = getInputDataStream(env,consumerGroup,kafkaAddress);
+        DataStream<String> inputStream = getInputDataStream(env, consumerGroup, kafkaAddress);
         cep.registerStream("inputStream", inputStream, "s3log");
 
         inputStream.print();
         //json needs extension jars to present during runtime.
         //Operator for identifying Failed Attempts to S3 by a user
-        DataStream<Map<String,Object>> failedAttempts = cep.from("inputStream")
+        DataStream<Map<String, Object>> failedAttempts = cep.from("inputStream")
                 .cql(S3_ACCESSLOG_FAILED_ATTEMPT_CQL)
                 .returnAsMap("outputStream");
 
         //Add Data stream sink for failed attempts-- flink producer
         //Flink kafka stream Producer
         FlinkKafkaProducer<Map<String, Object>> flinkKafkaProducer =
-                Producer.createMapProducer(env,outputTopicFailedAttempt, kafkaAddress);
+                Producer.createMapProducer(env, outputTopicFailedAttempt, kafkaAddress);
 
         failedAttempts.addSink(flinkKafkaProducer);
         failedAttempts.print();
@@ -79,16 +78,16 @@ public class S3FailedAttemptSiddhiApp {
     public static class lineSplitter implements FlatMapFunction<String, String> {
         @Override
         public void flatMap(String sentence, Collector<String> out) throws Exception {
-            for (String line: sentence.split("\n")) {
+            for (String line : sentence.split("\n")) {
                 out.collect(line);
             }
         }
     }
 
-    private static DataStream<String> getInputDataStream(StreamExecutionEnvironment env,String consumerGrp,String kafkaAddr){
+    private static DataStream<String> getInputDataStream(StreamExecutionEnvironment env, String consumerGrp, String kafkaAddr) {
         //Flink kafka stream consumer
         FlinkKafkaConsumer<String> flinkKafkaConsumer =
-                createInputMessageConsumer(inputTopic, kafkaAddr,zkAddress, consumerGrp);
+                createInputMessageConsumer(inputTopic, kafkaAddr, zkAddress, consumerGrp);
 
         //String containing newline separated lines.
         DataStream<String> inputS = env.addSource(flinkKafkaConsumer);
@@ -97,20 +96,20 @@ public class S3FailedAttemptSiddhiApp {
         DataStream<String> S3LogMsg = inputS.flatMap(new lineSplitter());
 
         //Converted each line to JSON
-        DataStream<String> jsonS3LogMsgs =  inputS.map(s3LogMsg -> {
-            return  S3AccessLog.toJson(s3LogMsg);
+        DataStream<String> jsonS3LogMsgs = inputS.map(s3LogMsg -> {
+            return S3AccessLog.toJson(s3LogMsg);
         });
 
         return jsonS3LogMsgs;
     }
 
-    public static FlinkKafkaConsumer<String> createInputMessageConsumer(String topic, String kafkaAddress, String zookeeprAddr, String kafkaGroup ) {
+    public static FlinkKafkaConsumer<String> createInputMessageConsumer(String topic, String kafkaAddress, String zookeeprAddr, String kafkaGroup) {
         Properties properties = new Properties();
         properties.setProperty("bootstrap.servers", kafkaAddress);
         properties.setProperty("zookeeper.connect", zookeeprAddr);
-        properties.setProperty("group.id",kafkaGroup);
+        properties.setProperty("group.id", kafkaGroup);
         FlinkKafkaConsumer<String> consumer = new FlinkKafkaConsumer<String>(
-                topic,new SimpleStringSchema(),properties);
+                topic, new SimpleStringSchema(), properties);
         return consumer;
     }
 }

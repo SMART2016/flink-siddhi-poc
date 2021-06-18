@@ -26,15 +26,15 @@ public final class ControlEventTransformer implements
 
         switch (value.getAction()) {
             case "add":
-                    collector.collect(MetadataControlEvent.builder().addExecutionPlan(ruleId, query).build());
-                    return;
+                collector.collect(MetadataControlEvent.builder().addExecutionPlan(ruleId, query).build());
+                return;
             case "update":
-                    collector.collect(MetadataControlEvent.builder().updateExecutionPlan(ruleId, query).build());
-                    return;
-                default:
-                    break;
-            }
+                collector.collect(MetadataControlEvent.builder().updateExecutionPlan(ruleId, query).build());
+                return;
+            default:
+                break;
         }
+    }
 
 }
 

@@ -17,6 +17,6 @@ import java.util.List;
 @NoArgsConstructor
 @ToString
 public class EventSources {
-  private List<Source> sources;
-  private Sink sink;
+    private List<Source> sources;
+    private Sink sink;
 }

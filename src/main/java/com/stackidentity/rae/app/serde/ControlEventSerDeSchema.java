@@ -38,7 +38,7 @@ public class ControlEventSerDeSchema implements EventSerDeSchema<RuleControlEven
     public RuleControlEvent deserialize(final byte[] message) {
         try {
             return mapper.readValue(message, RuleControlEvent.class);
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;

@@ -24,14 +24,13 @@ public class ControlStream {
     private static final String consumerName = "ruleConsumer";
 
 
-
-    public DataStream<ControlEvent> getControlStream(final StreamExecutionEnvironment env, Properties properties ,final String topic, final String streamName, int parallalism)
+    public DataStream<ControlEvent> getControlStream(final StreamExecutionEnvironment env, Properties properties, final String topic, final String streamName, int parallalism)
             throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
 
         FlinkKafkaConsumer<RuleControlEvent> rulesConsumer =
-                KafkaRuleConsumer.getControlStream(topic, properties,new ControlEventSerDeSchema());
+                KafkaRuleConsumer.getControlStream(topic, properties, new ControlEventSerDeSchema());
 
-        DataStream<RuleControlEvent> ruleControlStream = env.addSource(rulesConsumer,streamName).uid(consumerName).name(consumerName).setParallelism(parallalism);
+        DataStream<RuleControlEvent> ruleControlStream = env.addSource(rulesConsumer, streamName).uid(consumerName).name(consumerName).setParallelism(parallalism);
 
         //1.We can use transformers to transform the rules in case the rules are parameterized
         //2. We can apply filters to filter rules out which is not apt for the specific application ,
@@ -42,13 +41,13 @@ public class ControlStream {
         //return ruleStream;
     }
 
-    public DataStream<RuleControlEvent> getRuleControlStream(final StreamExecutionEnvironment env, Properties properties ,final String topic, final String streamName, int parallalism)
+    public DataStream<RuleControlEvent> getRuleControlStream(final StreamExecutionEnvironment env, Properties properties, final String topic, final String streamName, int parallalism)
             throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
 
         FlinkKafkaConsumer<RuleControlEvent> rulesConsumer =
-                KafkaRuleConsumer.getControlStream(topic, properties,new ControlEventSerDeSchema());
+                KafkaRuleConsumer.getControlStream(topic, properties, new ControlEventSerDeSchema());
 
-        DataStream<RuleControlEvent> ruleControlStream = env.addSource(rulesConsumer,streamName).uid(consumerName).name(consumerName).setParallelism(parallalism);
+        DataStream<RuleControlEvent> ruleControlStream = env.addSource(rulesConsumer, streamName).uid(consumerName).name(consumerName).setParallelism(parallalism);
 
         //1.We can use transformers to transform the rules in case the rules are parameterized
         //2. We can apply filters to filter rules out which is not apt for the specific application ,

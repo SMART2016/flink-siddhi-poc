@@ -11,8 +11,8 @@ services:
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager
-#    networks:
-#      - bridge
+  #    networks:
+  #      - bridge
 
 
   taskmanager:
@@ -26,8 +26,8 @@ services:
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager
         taskmanager.numberOfTaskSlots: 2
-#    networks:
-#      - bridge
+  #    networks:
+  #      - bridge
 
   kafka:
     build: ./docker/kafka-docker
@@ -41,8 +41,8 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
     depends_on:
       - zookeeper
-#    networks:
-#      - bridge
+  #    networks:
+  #      - bridge
 
   zookeeper:
     image: zookeeper

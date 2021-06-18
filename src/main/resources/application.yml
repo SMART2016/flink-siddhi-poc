@@ -10,20 +10,18 @@ kafka:
   bootstrapServers: "localhost:9092"
   zookeeperConnect: "localhost:2181"
   events:                                 ## Event will have a main source stream which will be split into
-                                            #multiple substreams based on the below configuration of substream
-                                            #list per source.
+    #multiple substreams based on the below configuration of substream
+    #list per source.
     sources:
       - topic: "log-event-stream-input"   ## Structured log file events, might require schema or some way to annotate the
-                                           # event to identify the type of the event as it is not Json.
+        # event to identify the type of the event as it is not Json.
         siddhiStreamName: "S3logInputStream"
         "streamType": "log"               ## can be log (Structured log),json for now, this
-                                            # is used to identify the split function
+        # is used to identify the split function
         subStreamType: "single"
         substreams:                       ## NOTE: right now S3 log main stream will have only one
-                                            #substream nothing else
-          - streamName: "s3_access_log"   ## final Substream name will be logInputStream-s3.access.log
-                                            # the type and the stream name will be same and this will correspond to the type in each data
-            type: "s3_access_log"         ## this is used for matching input data event type
+          #substream nothing else
+          - type: "s3_access_log"         ## this is used for matching input data event type
             transformer: "s3-access-log"
             fields:
               - s3log
@@ -31,17 +29,14 @@ kafka:
           topic: "json-event-stream-output"
           outputStreamName: "outputstream"
   rules:                                  # Rule will have a main source stream which will be split into
-                                            # multiple substreams based on the below configuration of substream list per source.
+    # multiple substreams based on the below configuration of substream list per source.
     sources:                              ## Always will be a json data from any source
       - topic: "si-simple-rules"          ## Main topic/source name where rules control events are published
         controlStreamName: "simplerulesStream"
-        mappingSourceDataStream : "${kafka.events.sources[0].siddhiStreamName}" ## NOTE: This has to match with one of the
-                                                                                # kafka.events.sources.[x].siddhiStreamName
+        mappingSourceDataStream: "${kafka.events.sources[0].siddhiStreamName}" ## NOTE: This has to match with one of the
+        # kafka.events.sources.[x].siddhiStreamName
         subStreams:
-          - streamName: "s3_access_log"   ## final rule Substream name will be logInputStream-s3-access-log, this is needed to
-                                          # map the rule substream with the data substream which catter to common types.
-                                          # the type and the stream name will be same and this will correspond to the type in each data
-            type: "s3_access_log"
+          - type: "s3_access_log"
             transformer: "rule-transformer"
 spring:
   application:

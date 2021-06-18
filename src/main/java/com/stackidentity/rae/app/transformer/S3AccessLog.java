@@ -11,15 +11,15 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 
 import java.util.List;
 
-public class S3AccessLog implements EventTransformer<DataStream<String>,DataStream<String>>{
+public class S3AccessLog implements EventTransformer<DataStream<String>, DataStream<String>> {
 
 
-    private String marshal(String record){
+    private String marshal(String record) {
         StringBuilder sb = new StringBuilder("{ \"type\": \"s3_access_log\",\"s3log\": ");
         String jsonS3LogEntry = "";
         List<S3LogEntry> entries = JSalParser.parseS3Log(record);
 
-        for(int i=0;i<entries.size();i++) {
+        for (int i = 0; i < entries.size(); i++) {
             S3LogEntry entry = entries.get(i);
             // Creating Object of ObjectMapper define in Jackson API
             ObjectMapper mapper = new ObjectMapper();
@@ -40,7 +40,7 @@ public class S3AccessLog implements EventTransformer<DataStream<String>,DataStre
     @Override
     public DataStream<String> transform(DataStream<String> inputS) {
         DataStream<String> s3JsonLogStream = inputS.map(s3LogMsg -> {
-            return  marshal(s3LogMsg);
+            return marshal(s3LogMsg);
         });
         return s3JsonLogStream;
     }

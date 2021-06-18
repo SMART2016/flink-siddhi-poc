@@ -14,7 +14,7 @@ import java.io.Serializable;
 @Setter
 @NoArgsConstructor
 @ToString
-public class Sink  implements Serializable {
+public class Sink implements Serializable {
     private String topic;
     private String outputStreamName;
 }

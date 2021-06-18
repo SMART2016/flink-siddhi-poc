@@ -13,7 +13,7 @@ import static com.stackidentity.rae.app.connector.Consumers.createKafkaConsumerF
  */
 public class KafkaRuleConsumer {
 
-    public static FlinkKafkaConsumer<RuleControlEvent> getControlStream(String topic, Properties properties ,final EventSerDeSchema<?> serDeSchema){
-        return createKafkaConsumerFor(topic,properties,serDeSchema);
+    public static FlinkKafkaConsumer<RuleControlEvent> getControlStream(String topic, Properties properties, final EventSerDeSchema<?> serDeSchema) {
+        return createKafkaConsumerFor(topic, properties, serDeSchema);
     }
 }

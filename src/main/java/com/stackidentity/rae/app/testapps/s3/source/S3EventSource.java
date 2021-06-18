@@ -1,7 +1,6 @@
 package com.stackidentity.rae.app.testapps.s3.source;
 
 
-
 import com.stackidentity.rae.app.testapps.s3.transform.JsonToS3;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 
@@ -9,7 +8,7 @@ import org.apache.flink.streaming.api.functions.source.SourceFunction;
 public class S3EventSource implements SourceFunction<String> {
 
     @Override
-    public void run(SourceContext<String> sourceContext)  {
+    public void run(SourceContext<String> sourceContext) {
         long timestamp = System.currentTimeMillis();
         sourceContext.collect(JsonToS3.getInput());
     }

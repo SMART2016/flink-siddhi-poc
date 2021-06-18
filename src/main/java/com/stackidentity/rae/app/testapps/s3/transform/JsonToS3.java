@@ -75,11 +75,13 @@ public class JsonToS3 {
             "        }\n" +
             "    }\n" +
             "}";
-    public static String getInput(){
+
+    public static String getInput() {
         return input1;
     }
-    public static Root convert(String inputEvent){
-        if (inputEvent == ""){
+
+    public static Root convert(String inputEvent) {
+        if (inputEvent == "") {
             inputEvent = input;
         }
 

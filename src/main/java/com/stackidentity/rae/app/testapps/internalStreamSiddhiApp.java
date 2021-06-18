@@ -41,7 +41,7 @@ public class internalStreamSiddhiApp {
             "ifThenElse(encryption != ' ' and algorithm == 'aws:kms','None','Critical') as severity insert into outputStream";
 
 
-    public static void start(){
+    public static void start() {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         //DataStream<String> inputS = env.addSource(new S3EventSource());
 
@@ -50,7 +50,7 @@ public class internalStreamSiddhiApp {
 
         SiddhiCEP cep = SiddhiCEP.getSiddhiEnvironment(env);
         cep.registerExtension("json:toObject", io.siddhi.extension.execution.json.function.ToJSONObjectFunctionExtension.class);
-        cep.registerExtension( "json:getString", io.siddhi.extension.execution.json.function.GetStringJSONFunctionExtension.class);
+        cep.registerExtension("json:getString", io.siddhi.extension.execution.json.function.GetStringJSONFunctionExtension.class);
 
 //        flinkKafkaConsumer.assignTimestampsAndWatermarks(
 //                WatermarkStrategy
@@ -58,7 +58,7 @@ public class internalStreamSiddhiApp {
 
         //Flink kafka stream Producer
         FlinkKafkaProducer<Map<String, Object>> flinkKafkaProducer =
-                Producer.createMapProducer(env,outputTopic, kafkaAddress);
+                Producer.createMapProducer(env, outputTopic, kafkaAddress);
 
 
         //Get Input DataStream from Kafka for S3 Access Logs
@@ -67,11 +67,11 @@ public class internalStreamSiddhiApp {
 
         inputStream.print();
         //json needs extension jars to present during runtime.
-        DataStream<Map<String,Object>> output = cep.from("inputStream")
+        DataStream<Map<String, Object>> output = cep.from("inputStream")
                 .cql(S3_ACCESSLOG_FAILED_ATTEMPT_CQL)
                 .returnAsMap("outputStream");
 
-       //Add Data stream sink -- flink producer
+        //Add Data stream sink -- flink producer
         output.addSink(flinkKafkaProducer);
         output.print();
 
@@ -86,36 +86,36 @@ public class internalStreamSiddhiApp {
     public static class lineSplitter implements FlatMapFunction<String, String> {
         @Override
         public void flatMap(String sentence, Collector<String> out) throws Exception {
-            for (String line: sentence.split("\n")) {
+            for (String line : sentence.split("\n")) {
                 out.collect(line);
             }
         }
     }
 
-    private static DataStream<String> getInputDataStream(StreamExecutionEnvironment env){
+    private static DataStream<String> getInputDataStream(StreamExecutionEnvironment env) {
         //Flink kafka stream consumer
         FlinkKafkaConsumer<String> flinkKafkaConsumer =
-                createInputMessageConsumer(inputTopic, kafkaAddress,zkAddress, consumerGroup);
+                createInputMessageConsumer(inputTopic, kafkaAddress, zkAddress, consumerGroup);
 
         DataStream<String> inputS = env.addSource(flinkKafkaConsumer);
 
 
         DataStream<String> S3LogMsg = inputS.flatMap(new lineSplitter());
 
-        DataStream<String> jsonS3LogMsgs =  inputS.map(s3LogMsg -> {
-            return  toJson(s3LogMsg);
+        DataStream<String> jsonS3LogMsgs = inputS.map(s3LogMsg -> {
+            return toJson(s3LogMsg);
         });
 
         return jsonS3LogMsgs;
     }
 
-    public static FlinkKafkaConsumer<String> createInputMessageConsumer(String topic, String kafkaAddress, String zookeeprAddr, String kafkaGroup ) {
+    public static FlinkKafkaConsumer<String> createInputMessageConsumer(String topic, String kafkaAddress, String zookeeprAddr, String kafkaGroup) {
         Properties properties = new Properties();
         properties.setProperty("bootstrap.servers", kafkaAddress);
         properties.setProperty("zookeeper.connect", zookeeprAddr);
-        properties.setProperty("group.id",kafkaGroup);
+        properties.setProperty("group.id", kafkaGroup);
         FlinkKafkaConsumer<String> consumer = new FlinkKafkaConsumer<String>(
-                topic,new SimpleStringSchema(),properties);
+                topic, new SimpleStringSchema(), properties);
         return consumer;
     }
 }

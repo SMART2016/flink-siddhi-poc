@@ -14,7 +14,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @ToString
-public class RuleSource{
+public class RuleSource {
     private String topic;
     private String controlStreamName;
     private int parallelism;

@@ -16,11 +16,11 @@ import java.util.List;
 @NoArgsConstructor
 @ToString
 public class Source implements Serializable {
-  private String topic;
-  private String siddhiStreamName;
-  private int parallelism;
-  private String subStreamType;
-  private String streamType;
-  private List<SubStream> substreams;
-  private Sink sink;
+    private String topic;
+    private String siddhiStreamName;
+    private int parallelism;
+    private String subStreamType;
+    private String streamType;
+    private List<SubStream> substreams;
+    private Sink sink;
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stackidentity.rae.app.control.model.RuleControlEvent;
 import com.stackidentity.rae.app.transformer.EventTransformer;
+import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
@@ -20,21 +21,23 @@ import java.util.Map;
 public class Stream {
 
     private static final String COMPARISON_KEY = "type";
+
     /**
      * Returns the splitted substream for the Json string main stream.
      * The subtreams names corresponds to the key that will be used to compare with the key in the main stream to create substreams.
+     *
      * @param mainStream
      * @param subStreamConf
      * @return map of substream splitted from main stream carrying JSON string records
-     *          Key: substream name (events.sources.substreams.type in the application.xml)
+     * Key: substream name (events.sources.substreams.type in the application.xml)
      */
-    public static Map<String, DataStream<String>> splitJsonStringStream(DataStream<String> mainStream, final Map<String, EventTransformer<DataStream<String>,DataStream<String>>> subStreamConf){
-        final Map<String,DataStream<String>> subStreamMap = new HashMap<>();
+    public static Map<String, DataStream<String>> splitJsonStringStream(DataStream<String> mainStream, final Map<String, EventTransformer<DataStream<String>, DataStream<String>>> subStreamConf) {
+        final Map<String, DataStream<String>> subStreamMap = new HashMap<>();
 
-        final Map<String,OutputTag<String>> subStreamTags = new HashMap<>();
-        subStreamConf.forEach((key,transformer) ->{
+        final Map<String, OutputTag<String>> subStreamTags = new HashMap<>();
+        subStreamConf.forEach((key, transformer) -> {
             OutputTag<String> outputTag = new OutputTag(key);
-            subStreamTags.put(key,outputTag);
+            subStreamTags.put(key, outputTag);
         });
 
         //Splitting main stream into substreams as configured in application.xml using flinks side output operation.
@@ -48,18 +51,17 @@ public class Stream {
                             Collector<String> out) throws Exception {
                         ObjectMapper objectMapper = new ObjectMapper();
                         JsonNode jsonNode = objectMapper.readTree(value);
-                        if(subStreamConf.containsKey(jsonNode.get(COMPARISON_KEY))){
+                        if (subStreamConf.containsKey(jsonNode.get(COMPARISON_KEY))) {
                             ctx.output(subStreamTags.get(jsonNode.get(COMPARISON_KEY)), value);
                         }
 
                     }
                 });
 
-        subStreamTags.forEach((subStreamName,sideOutputTag) -> {
+        subStreamTags.forEach((subStreamName, sideOutputTag) -> {
             DataStream<String> sideOutputStream = mainDataStream.getSideOutput(sideOutputTag);
-            subStreamMap.put(subStreamName,sideOutputStream);
+            subStreamMap.put(subStreamName, sideOutputStream);
         });
-
 
 
         return subStreamMap;
@@ -69,18 +71,19 @@ public class Stream {
     /**
      * Returns the splitted substream for the RuleControlEvent control main stream.
      * The subtreams names corresponds to the key that will be used to compare with the key in the main stream to create substreams.
+     *
      * @param ruleStream
      * @param subStreamConf
      * @return map of substream splitted from main control stream carrying RuleControlEvent records
-     *          Key: substream name (rules.sources.substreams.type in the application.xml)
+     * Key: substream name (rules.sources.substreams.type in the application.xml)
      */
-    public static Map<String, DataStream<ControlEvent>> splitRuleStream(DataStream<RuleControlEvent> ruleStream, final Map<String, EventTransformer<DataStream<RuleControlEvent>,DataStream<ControlEvent>>> subStreamConf){
-        final Map<String,DataStream<ControlEvent>> subStreamMap = new HashMap<>();
+    public static Map<String, DataStream<ControlEvent>> splitRuleStream(DataStream<RuleControlEvent> ruleStream, final Map<String, EventTransformer<DataStream<RuleControlEvent>, DataStream<ControlEvent>>> subStreamConf) {
+        final Map<String, DataStream<ControlEvent>> subStreamMap = new HashMap<>();
 
-        final Map<String,OutputTag<RuleControlEvent>> subStreamTags = new HashMap<>();
-        subStreamConf.forEach((key,transformer) ->{
-            OutputTag<RuleControlEvent> outputTag = new OutputTag(key);
-            subStreamTags.put(key,outputTag);
+        final Map<String, OutputTag<RuleControlEvent>> subStreamTags = new HashMap<>();
+        subStreamConf.forEach((key, transformer) -> {
+            OutputTag<RuleControlEvent> outputTag = new OutputTag(key, Types.POJO(RuleControlEvent.class));
+            subStreamTags.put(key, outputTag);
         });
 
         //Splitting main stream into substreams as configured in application.xml using flinks side output operation.
@@ -96,8 +99,8 @@ public class Stream {
                         String[] compareKey = value.getType();
                         //NOTE: Not sure if this will work, where same value is posted to multiple side outputs
                         //This is needed because a single rule can be keyed or mapped or needed to multiple data streams
-                        for(String key : compareKey){
-                            if(subStreamConf.containsKey(compareKey)){
+                        for (String key : compareKey) {
+                            if (subStreamConf.containsKey(compareKey)) {
                                 ctx.output(subStreamTags.get(compareKey), value);
                             }
                         }
@@ -105,12 +108,11 @@ public class Stream {
                     }
                 });
 
-        subStreamTags.forEach((subStreamName,sideOutputTag) -> {
-            EventTransformer<DataStream<RuleControlEvent>,DataStream<ControlEvent>> t =subStreamConf.get(subStreamName);
+        subStreamTags.forEach((subStreamName, sideOutputTag) -> {
+            EventTransformer<DataStream<RuleControlEvent>, DataStream<ControlEvent>> t = subStreamConf.get(subStreamName);
             DataStream<ControlEvent> sideOutputStream = t.transform(sideStream.getSideOutput(sideOutputTag));
-            subStreamMap.put(subStreamName,sideOutputStream);
+            subStreamMap.put(subStreamName, sideOutputStream);
         });
-
 
 
         return subStreamMap;
@@ -119,18 +121,19 @@ public class Stream {
     /**
      * Splits the structured log main stream into a single substream.
      * <b>NOTE</b>: This was not needed as right now we are creating a single source topic for structured logs
-     *              Example: only one topic is used to publish S3 access log, and so a substream is not needed but to test
-     *              Stream splitting this is done this way.
+     * Example: only one topic is used to publish S3 access log, and so a substream is not needed but to test
+     * Stream splitting this is done this way.
+     *
      * @param mainStream
      * @param transformer
      * @param subStreamname
-     * @return Map<String,DataStream<String>>
-     *              Key: substream name
-     *              value: splitted substream from main log stream
+     * @return Map<String, DataStream < String>>
+     * Key: substream name
+     * value: splitted substream from main log stream
      */
-    public static Map<String,DataStream<String>> splitLogStream(DataStream<String> mainStream,final EventTransformer<String,String> transformer,final String subStreamname){
-        final Map<String,DataStream<String>> subStreamMap = new HashMap<>();
-        OutputTag<String> outputTag = new OutputTag(subStreamname);
+    public static Map<String, DataStream<String>> splitLogStream(DataStream<String> mainStream, final EventTransformer<String, String> transformer, final String subStreamname) {
+        final Map<String, DataStream<String>> subStreamMap = new HashMap<>();
+        OutputTag<String> outputTag = new OutputTag<>(subStreamname, Types.STRING);
         SingleOutputStreamOperator<String> mainDataStream = mainStream.process(
                 new ProcessFunction<String, String>() {
 
@@ -146,27 +149,29 @@ public class Stream {
                     }
                 });
         DataStream<String> sideOutputStream = mainDataStream.getSideOutput(outputTag);
-        subStreamMap.put(subStreamname,sideOutputStream);
+        subStreamMap.put(subStreamname, sideOutputStream);
         return subStreamMap;
     }
 
     /**
      * Return substream name based on main stream and substream
+     *
      * @param mainStreamName
      * @param subStreamName
      * @return
      */
-    public static String getSubStreamName(String mainStreamName , String subStreamName){
-        return mainStreamName + "-" + subStreamName;
+    public static String getSubStreamName(String mainStreamName, String subStreamName) {
+        return mainStreamName + "_" + subStreamName;
     }
 
     /**
      * Return the actual substream name from the final stream name
+     *
      * @param finalSubStream
      * @return
      */
-    public static String getSubStreamNameFrm(String finalSubStream ){
-        return finalSubStream.split("-")[1];
+    public static String getSubStreamNameFrm(String finalSubStream) {
+        return finalSubStream.split("_")[1];
     }
 
 }
