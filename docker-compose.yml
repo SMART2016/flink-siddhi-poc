@@ -46,7 +46,7 @@ services:
     ports:
       - "9092:9092"
     environment:
-      KAFKA_CREATE_TOPICS: "EVENT_STREAM_OUTPUT_FAILED_ATTEMPT:1:1,EVENT_STREAM_OUTPUT_ACTUAL_ACCESS:1:1,EVENT_STREAM_INPUT:1:1"
+      KAFKA_CREATE_TOPICS: "log-event-stream-input:1:1,json-event-stream-output:1:1,si-simple-rules:1:1,s3-event-stream-output:1:1,json-event-stream-input:1:1"
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_ADVERTISED_HOST_NAME: kafka
       KAFKA_ADVERTISED_PORT: 9092
