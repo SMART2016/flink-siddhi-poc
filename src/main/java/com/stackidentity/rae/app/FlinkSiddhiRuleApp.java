@@ -6,6 +6,7 @@ import com.stackidentity.rae.app.config.JobConfigurator;
 import com.stackidentity.rae.app.control.model.RuleControlEvent;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.graph.StreamGraph;
 import org.apache.flink.streaming.siddhi.SiddhiCEP;
 import org.springframework.context.ConfigurableApplicationContext;
 
@@ -48,6 +49,7 @@ public class FlinkSiddhiRuleApp {
         for (DataStream<Map<String, Object>> out : outStreams) {
             out.print();
         }
+
 
         try {
             env.execute(jobConfig.getJobName());

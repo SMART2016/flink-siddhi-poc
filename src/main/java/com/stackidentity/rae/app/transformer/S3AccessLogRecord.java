@@ -14,7 +14,7 @@ public class S3AccessLogRecord implements EventTransformer<String, String> {
 
 
     public String transform(String record) {
-        StringBuilder sb = new StringBuilder("{ \"type\": \"s3.access.log\",\"s3log\": ");
+        StringBuilder sb = new StringBuilder("{ \"type\": \"s3_access_log\",\"s3log\": ");
         String jsonS3LogEntry = "";
         List<S3LogEntry> entries = JSalParser.parseS3Log(record);
 

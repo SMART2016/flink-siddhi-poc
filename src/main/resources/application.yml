@@ -22,7 +22,7 @@ kafka:
         substreams:                       ## NOTE: right now S3 log main stream will have only one
           #substream nothing else
           - type: "s3_access_log"         ## this is used for matching input data event type
-            transformer: "s3-access-log"
+            transformer: "s3-access-log-record"
             fields:
               - s3log
         sink:
@@ -38,6 +38,7 @@ kafka:
         subStreams:
           - type: "s3_access_log"
             transformer: "rule-transformer"
+            #transformer: "rule-event-transformer"
 spring:
   application:
     name: "SIFlinkJob"

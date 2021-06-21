@@ -141,6 +141,13 @@
         
             - **Solution**: Implemeted a transformer to convert simple control stream event POJO to siddhi operator.
                             - ControlEventTransformer
+                            
+   - **Problem: Flink siddhi control stream was failing when control and data stream are pushed into there respective sources.**
+          - It was failing with Nullpointer exception.
+          - **Solution:**   The issue was due to mismatched parallalism on the control operator and other operators not 
+          clear on this completely , but by setting the parallaism to 1 at the flink execution environment , it fixed the 
+          issue.   
+               
                
             
                 

@@ -5,7 +5,7 @@
         "ruleId": "1",
         "ruleversion": "1.0",
         "disabled": false,
-        "ruleDefinition": "from jsonInputStream select json:toObject(s3log) as obj insert into temp; from temp select json:getString(obj,'$.s3log.requestId') as access_requester,json:getString(obj,'$.s3log.httpStatus') as attempted_response,json:getString(obj,'$.s3log.bucket') as accessed_bucket,json:getString(obj,'$.s3log.operation') as attempted_action insert into temp2;from every( e1 = temp2 ) -> e2 = temp2[ e1.access_requester == access_requester and (e1.attempted_response == attempted_response) and attempted_response == '404'] within 30 sec select e1.access_requester , e1.attempted_response, e1.accessed_bucket,e1.attempted_action insert into outputStream;",
+        "ruleDefinition": "from S3logInputStream_s3_access_log select json:toObject(s3log) as obj insert into temp; from temp select json:getString(obj,'$.s3log.requestId') as access_requester,json:getString(obj,'$.s3log.httpStatus') as attempted_response,json:getString(obj,'$.s3log.bucket') as accessed_bucket,json:getString(obj,'$.s3log.operation') as attempted_action insert into temp2;from every( e1 = temp2 ) -> e2 = temp2[ e1.access_requester == access_requester and (e1.attempted_response == attempted_response) and attempted_response == '404'] within 30 sec select e1.access_requester , e1.attempted_response, e1.accessed_bucket,e1.attempted_action insert into outputstream;",
         "action": "add",
         "type": [
           "s3_access_log"
@@ -15,7 +15,7 @@
         "ruleId": "2",
         "ruleversion": "1.0",
         "disabled": false,
-        "ruleDefinition": "from jsonInputStream select json:toObject(s3log) as obj insert into temp;from temp select json:getString(obj,'$.s3log.requestId') as access_requester,json:getString(obj,'$.s3log.bucket') as accessed_bucket,json:getString(obj,'$.s3log.operation') as attempted_action,json:getString(obj,'$.s3log.httpStatus') as attempted_response,json:getString(obj,'$.s3log.errorCode') as attempted_error insert into temp2;from temp2#window.time(10 sec) select access_requester,accessed_bucket,attempted_response,attempted_error,count() as attempts group by access_requester,accessed_bucket having attempted_response == '404' and attempts > 3 insert into outputStream;",
+        "ruleDefinition": "from S3logInputStream_s3_access_log select json:toObject(s3log) as obj insert into temp;from temp select json:getString(obj,'$.s3log.requestId') as access_requester,json:getString(obj,'$.s3log.bucket') as accessed_bucket,json:getString(obj,'$.s3log.operation') as attempted_action,json:getString(obj,'$.s3log.httpStatus') as attempted_response,json:getString(obj,'$.s3log.errorCode') as attempted_error insert into temp2;from temp2#window.time(10 sec) select access_requester,accessed_bucket,attempted_response,attempted_error,count() as attempts group by access_requester,accessed_bucket having attempted_response == '404' and attempts > 3 insert into outputstream;",
         "action": "add",
         "type": [
           "s3_access_log"
@@ -24,25 +24,7 @@
     }
   },
   {
-    "1": {
-      "ruleId": "1",
-      "ruleversion": "1.0",
-      "disabled": false,
-      "ruleDefinition": "from jsonInputStream select json:toObject(s3log) as obj insert into temp; from temp select json:getString(obj,'$.s3log.requestId') as access_requester,json:getString(obj,'$.s3log.httpStatus') as attempted_response,json:getString(obj,'$.s3log.bucket') as accessed_bucket,json:getString(obj,'$.s3log.operation') as attempted_action insert into temp2;from every( e1 = temp2 ) -> e2 = temp2[ e1.access_requester == access_requester and (e1.attempted_response == attempted_response) and attempted_response == '404'] within 30 sec select e1.access_requester , e1.attempted_response, e1.accessed_bucket,e1.attempted_action insert into outputStream;",
-      "action": "add",
-      "type": [
-        "s3_access_log"
-      ]
-    },
-    "2": {
-      "ruleId": "2",
-      "ruleversion": "1.0",
-      "disabled": false,
-      "ruleDefinition": "from jsonInputStream select json:toObject(s3log) as obj insert into temp;from temp select json:getString(obj,'$.s3log.requestId') as access_requester,json:getString(obj,'$.s3log.bucket') as accessed_bucket,json:getString(obj,'$.s3log.operation') as attempted_action,json:getString(obj,'$.s3log.httpStatus') as attempted_response,json:getString(obj,'$.s3log.errorCode') as attempted_error insert into temp2;from temp2#window.time(10 sec) select access_requester,accessed_bucket,attempted_response,attempted_error,count() as attempts group by access_requester,accessed_bucket having attempted_response == '404' and attempts > 3 insert into outputStream;",
-      "action": "add",
-      "type": [
-        "s3_access_log"
-      ]
-    }
+    "1": {"ruleId":"1","ruleversion":"1.0","disabled":false,"ruleDefinition":"from S3logInputStream_s3_access_log select json:toObject(s3log) as obj insert into temp; from temp select json:getString(obj,'$.s3log.requestId') as access_requester,json:getString(obj,'$.s3log.httpStatus') as attempted_response,json:getString(obj,'$.s3log.bucket') as accessed_bucket,json:getString(obj,'$.s3log.operation') as attempted_action insert into temp2;from every( e1 = temp2 ) -> e2 = temp2[ e1.access_requester == access_requester and (e1.attempted_response == attempted_response) and attempted_response == '404'] within 30 sec select e1.access_requester , e1.attempted_response, e1.accessed_bucket,e1.attempted_action insert into outputstream;","action":"add","type":["s3_access_log"]},
+    "2": {"ruleId":"2","ruleversion":"1.0","disabled":false,"ruleDefinition":"from S3logInputStream_s3_access_log select json:toObject(s3log) as obj insert into temp;from temp select json:getString(obj,'$.s3log.requestId') as access_requester,json:getString(obj,'$.s3log.bucket') as accessed_bucket,json:getString(obj,'$.s3log.operation') as attempted_action,json:getString(obj,'$.s3log.httpStatus') as attempted_response,json:getString(obj,'$.s3log.errorCode') as attempted_error insert into temp2;from temp2#window.time(10 sec) select access_requester,accessed_bucket,attempted_response,attempted_error,count() as attempts group by access_requester,accessed_bucket having attempted_response == '404' and attempts > 3 insert into outputstream;","action":"add","type":["s3_access_log"]}
   }
 ]

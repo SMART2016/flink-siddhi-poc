@@ -7,9 +7,7 @@ import com.stackidentity.rae.app.connector.Producer;
 import com.stackidentity.rae.app.control.ControlStream;
 import com.stackidentity.rae.app.control.model.RuleControlEvent;
 import com.stackidentity.rae.app.serde.StringSchemaSerDe;
-import com.stackidentity.rae.app.transformer.EventTransformer;
-import com.stackidentity.rae.app.transformer.RuleTransformer;
-import com.stackidentity.rae.app.transformer.S3AccessLog;
+import com.stackidentity.rae.app.transformer.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -39,9 +37,11 @@ public class JobConfigurator {
     }
 
     public void initTransformers() {
-        eventTranformRepo.put("s3.access.log", new S3AccessLog());
+        eventTranformRepo.put("s3-access-log", new S3AccessLog());
+        eventTranformRepo.put("s3-access-log-record", new S3AccessLogRecord());
         eventTranformRepo.put("rule-transformer", new RuleTransformer());
         eventTranformRepo.put("json-transformer", null);
+        eventTranformRepo.put("rule-event-transformer", new RuleEventTransformer());
     }
 
     public EventTransformer<?, ?> getTransformer(String transformerName) {
@@ -177,11 +177,6 @@ public class JobConfigurator {
     public Map<String, List<DataStream<?>>> getSplittedDataAndControlStream(Map<String, DataStream<String>> mainDataStreams, Map<String, DataStream<RuleControlEvent>> mainRuleStreams) {
         Map<String, List<DataStream<?>>> splittedStreams = new HashMap<>();
 
-        //The list is of size 2 containing:
-        //INDEX 0: substream for the main dataStreams based on the substream configuration for each main stream.
-        //INDEX 1: substream for the main rule/control stream based on the substream configuration for each main rule streams.
-        List<DataStream<?>> dataAndRuleStream = new ArrayList<>(2);
-
         //TODO: Next steps ....
         //Read config kafka.events.sources
         EventSources eventSources = config.getEventSources();
@@ -243,12 +238,15 @@ public class JobConfigurator {
      * @return
      */
     private Map<String, List<DataStream<?>>> getSubStreamsForRule(DataStream<RuleControlEvent> ruleStream, RuleSource r, final Map<String, List<DataStream<?>>> splittedStreams) {
+        //TODO: Debugging
+        System.out.println("Main Data Stream: ----> ");
+        ruleStream.print();
         List<SubStream> subStreams = r.getSubStreams();
         Map<String, EventTransformer<DataStream<RuleControlEvent>, DataStream<ControlEvent>>> subStreamConf = new HashMap<>();
-
+        //Map<String, EventTransformer<RuleControlEvent, ControlEvent>> subStreamConf = new HashMap<>();
         for (SubStream s : subStreams) {
             //EventTransformer<DataStream<RuleControlEvent>,DataStream<ControlEvent>> t = getTransformer(s.getTransformer());
-            subStreamConf.put(s.getType(), (EventTransformer<DataStream<RuleControlEvent>, DataStream<ControlEvent>>) getTransformer(s.getTransformer()));
+            subStreamConf.put(s.getType(),(EventTransformer<DataStream<RuleControlEvent>, DataStream<ControlEvent>>)getTransformer(s.getTransformer()));
         }
 
         Map<String, DataStream<ControlEvent>> controlStreamMap = Stream.splitRuleStream(ruleStream, subStreamConf);
@@ -259,7 +257,9 @@ public class JobConfigurator {
         controlStreamMap.forEach((ruleSubstreamType, ruleSubStream) -> {
             String subStreamName = Stream.getSubStreamName(r.getMappingSourceDataStream(), ruleSubstreamType);
             List<DataStream<?>> lst = splittedStreams.get(subStreamName);
-            lst.add(1, ruleStream);
+            //TODO: Debugging
+            ruleSubStream.print();
+            lst.add(1, ruleSubStream);
         });
 
         return splittedStreams;

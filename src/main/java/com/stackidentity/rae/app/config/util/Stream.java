@@ -100,8 +100,8 @@ public class Stream {
                         //NOTE: Not sure if this will work, where same value is posted to multiple side outputs
                         //This is needed because a single rule can be keyed or mapped or needed to multiple data streams
                         for (String key : compareKey) {
-                            if (subStreamConf.containsKey(compareKey)) {
-                                ctx.output(subStreamTags.get(compareKey), value);
+                            if (subStreamConf.containsKey(key)) {
+                                ctx.output(subStreamTags.get(key), value);
                             }
                         }
 
@@ -117,6 +117,37 @@ public class Stream {
 
         return subStreamMap;
     }
+
+    // Standby code for rule stream splitting -------------------
+    public static Map<String, DataStream<ControlEvent>> splitRuleStream1(DataStream<RuleControlEvent> ruleStream, final Map<String, EventTransformer<DataStream<RuleControlEvent>, DataStream<ControlEvent>>> subStreamConf) {
+        final Map<String, DataStream<ControlEvent>> subStreamMap = new HashMap<>();
+        subStreamConf.forEach((key,ruleTransformer) ->{
+            DataStream<RuleControlEvent> rce =  filteredStream(ruleStream,key);
+            subStreamMap.put(key,ruleTransformer.transform(rce));
+        });
+
+        return subStreamMap;
+    }
+    private static DataStream<RuleControlEvent> filteredStream (DataStream<RuleControlEvent> ruleStream,String splitKey){
+        DataStream<RuleControlEvent> r1 = ruleStream.filter(
+                rule -> {
+                    boolean flag = true;
+                    String[] compareKey = rule.getType();
+
+                    for (String key : compareKey) {
+                        if(splitKey.equals(key)){
+                            flag = true;
+                            break;
+                        }
+                    }
+                    return flag;
+                }
+        );
+
+        return r1;
+    }
+
+    //Standby code for ends for rule stream splitting
 
     /**
      * Splits the structured log main stream into a single substream.
@@ -154,7 +185,7 @@ public class Stream {
     }
 
     /**
-     * Return substream name based on main stream and substream
+     * Return substream name based on main stream and substream separated by (_)
      *
      * @param mainStreamName
      * @param subStreamName
