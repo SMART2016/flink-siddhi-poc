@@ -28,6 +28,22 @@ kafka:
         sink:
           topic: "json-event-stream-output"
           outputStreamName: "outputstream"
+
+      - topic: "json-event-stream-input"   ## json events
+        # event to identify the type of the event as it is not Json.
+        siddhiStreamName: "jsoninputstream"
+        "streamType": "json"               ## can be log (Structured log),json for now, this
+        # is used to identify the split function
+        subStreamType: "multiple"
+        substreams:                       ## NOTE: right now S3 log main stream will have only one
+          #substream nothing else
+          - type: "aws_s3"         ## this is used for matching input data event type
+            transformer: "json-transformer"
+            fields:
+              - awsS3
+        sink:
+          topic: "s3-event-stream-output"
+          outputStreamName: "s3_outputstream"
   rules:                                  # Rule will have a main source stream which will be split into
     # multiple substreams based on the below configuration of substream list per source.
     sources:                              ## Always will be a json data from any source
@@ -39,6 +55,9 @@ kafka:
           - type: "s3_access_log"
             transformer: "rule-transformer"
             #transformer: "rule-event-transformer"
+          - type: "aws_s3"         ## this is used for matching input data event type
+            transformer: "rule-transformer"
+
 spring:
   application:
     name: "SIFlinkJob"

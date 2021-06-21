@@ -36,7 +36,7 @@ public class Stream {
 
         final Map<String, OutputTag<String>> subStreamTags = new HashMap<>();
         subStreamConf.forEach((key, transformer) -> {
-            OutputTag<String> outputTag = new OutputTag(key);
+            OutputTag<String> outputTag = new OutputTag(key,Types.STRING);
             subStreamTags.put(key, outputTag);
         });
 
@@ -51,8 +51,8 @@ public class Stream {
                             Collector<String> out) throws Exception {
                         ObjectMapper objectMapper = new ObjectMapper();
                         JsonNode jsonNode = objectMapper.readTree(value);
-                        if (subStreamConf.containsKey(jsonNode.get(COMPARISON_KEY))) {
-                            ctx.output(subStreamTags.get(jsonNode.get(COMPARISON_KEY)), value);
+                        if (subStreamConf.containsKey(jsonNode.get(COMPARISON_KEY).asText())) {
+                            ctx.output(subStreamTags.get(jsonNode.get(COMPARISON_KEY).asText()), value);
                         }
 
                     }
@@ -192,7 +192,8 @@ public class Stream {
      * @return
      */
     public static String getSubStreamName(String mainStreamName, String subStreamName) {
-        return mainStreamName + "_" + subStreamName;
+        return subStreamName;
+        //return mainStreamName + "_" + subStreamName;
     }
 
     /**

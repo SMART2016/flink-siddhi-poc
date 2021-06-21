@@ -42,6 +42,14 @@ public class FlinkSiddhiRuleApp {
         //Get combined input data and rule stream based on common key in data stream records and rule stream records.
         Map<String, List<DataStream<?>>> combinedDataAndRuleStream = configurator.getSplittedDataAndControlStream(inputDataStreams, ruleControlStream);
 
+
+        combinedDataAndRuleStream.forEach((key,stream) -> {
+            System.out.println("substreams --> "+key);
+            stream.get(0).print();
+            stream.get(1).print();
+        });
+
+
         //TODO: code to generate output streams from the above combined rule and data stream
         List<DataStream<Map<String, Object>>> outStreams = configurator.getTransformedOutputStreams(combinedDataAndRuleStream);
 

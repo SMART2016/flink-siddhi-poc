@@ -10,7 +10,9 @@ import org.apache.flink.util.Collector;
 public class RuleTransformer implements EventTransformer<DataStream<RuleControlEvent>, DataStream<ControlEvent>> {
     @Override
     public DataStream<ControlEvent> transform(DataStream<RuleControlEvent> controlStream) {
-        return controlStream.flatMap(new ControlEventTransformer()).uid("rule-transformer").name("rule-transformer");
+        return controlStream.flatMap(new ControlEventTransformer());
+             //TODO: Add UID and Name latter
+                //.uid("rule-transformer").name("rule-transformer");
     }
 
     private static final class ControlEventTransformer implements

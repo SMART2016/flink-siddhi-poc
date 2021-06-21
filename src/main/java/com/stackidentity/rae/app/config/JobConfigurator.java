@@ -206,7 +206,7 @@ public class JobConfigurator {
      * populates the final map for data and control stream based on the source stream type (log,json)
      *
      * @param mainStream
-     * @param s
+     * @param s configuration for mainstream
      * @param splittedStreams
      * @return
      */
@@ -214,6 +214,7 @@ public class JobConfigurator {
         List<SubStream> subStreams = s.getSubstreams();
         switch (s.getStreamType()) {
             case "log":
+                // The assumption right now is as log streams are structured data and not json so for now there will be only single substream for log data streams.
                 SubStream singleSubStream = subStreams.get(0);
                 Map<String, DataStream<String>> subStreamMap = Stream.splitLogStream(mainStream, (EventTransformer<String, String>) getTransformer(singleSubStream.getTransformer()), singleSubStream.getType());
                 List<DataStream<?>> dataAndControlLst = new ArrayList<>(2);
@@ -221,8 +222,22 @@ public class JobConfigurator {
                 dataAndControlLst.add(0, subStreamMap.get(singleSubStream.getType()));
                 splittedStreams.put(subStreamName, dataAndControlLst);
                 break;
-            case "json":
+            case "json": //can have 1 or more than one substreams for json data stream.
+                Map<String, EventTransformer<DataStream<String>, DataStream<String>>> subStreamConf = new HashMap<>();
+                for (SubStream sub : subStreams){
+                   //Right now there is no JSON transformation forseen or registered so the value for the substream types will be null
+                    subStreamConf.put(sub.getType(),(EventTransformer<DataStream<String>, DataStream<String>>)getTransformer(sub.getTransformer()));
+                }
+                Map<String, DataStream<String>> jsonDataStreamMap = Stream.splitJsonStringStream(mainStream, subStreamConf);
+
+                jsonDataStreamMap.forEach((subStreamActualName , jsonSubStream) -> {
+                    String subStreamFinalName = Stream.getSubStreamName(s.getSiddhiStreamName(), subStreamActualName);
+                    List<DataStream<?>> dataAndControlList = new ArrayList<>(2);
+                    dataAndControlList.add(0, jsonSubStream);
+                    splittedStreams.put(subStreamFinalName, dataAndControlList);
+                });
                 break;
+
             default:
                 System.out.println("Invalid Source Stream type");
         }
@@ -278,7 +293,7 @@ public class JobConfigurator {
     public Map<String, DataStream<String>> getMainInputSourceStreams() {
         Map<String, DataStream<String>> mainStreamMap = new HashMap<>();
         List<Source> iSources = getEventMainSourceList();
-
+        System.out.println("Input sources: -> "+iSources);
         for (Source s : iSources) {
             //Flink kafka stream consumer
             FlinkKafkaConsumer<String> flinkKafkaConsumer =
