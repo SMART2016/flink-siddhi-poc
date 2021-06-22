@@ -3,7 +3,7 @@ version: "3"
 services:
   jobmanager:
     platform: linux/x86_64
-    image: flink:1.13.0-scala_2.11
+    image: flink:1.11.0-scala_2.11
     ports:
       - "8081:8081"
     #      - "5005:5005"
@@ -23,7 +23,7 @@ services:
 
   taskmanager:
     platform: linux/x86_64
-    image: flink:1.13.0-scala_2.11
+    image: flink:1.11.0-scala_2.11
     depends_on:
       - jobmanager
     command: taskmanager
