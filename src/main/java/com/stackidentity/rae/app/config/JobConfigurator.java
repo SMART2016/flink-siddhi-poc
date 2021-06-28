@@ -76,6 +76,8 @@ public class JobConfigurator {
         SiddhiCEP cep = SiddhiCEP.getSiddhiEnvironment(env);
         cep.registerExtension("json:toObject", io.siddhi.extension.execution.json.function.ToJSONObjectFunctionExtension.class);
         cep.registerExtension("json:getString", io.siddhi.extension.execution.json.function.GetStringJSONFunctionExtension.class);
+        cep.registerExtension("json:setElement", io.siddhi.extension.execution.json.function.SetElementJSONFunctionExtension.class);
+        cep.registerExtension("json:tokenizeAsObject", io.siddhi.extension.execution.json.JsonTokenizerAsObjectStreamProcessorFunction.class);
         this.cep = cep;
         return cep;
     }

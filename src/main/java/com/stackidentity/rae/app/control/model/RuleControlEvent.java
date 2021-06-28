@@ -26,9 +26,18 @@ public class RuleControlEvent {
     private String ruleId;
     private String ruleversion;
     private String ruleDefinition;
+    private String description;
     private String[] type;
     private boolean disabled;
     private String action;
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
     public String[] getType() {
         return type;
