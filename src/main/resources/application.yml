@@ -1,6 +1,7 @@
 ---
 flink:
   streamTimeCharacteristic: "ProcessingTime" ## ProcessingTime|IngestionTime|EventTime
+  checkpointSnapshotTime: 1000
   job:
     groupId: "${spring.application.name}-group"
     name: "${spring.application.name}"
