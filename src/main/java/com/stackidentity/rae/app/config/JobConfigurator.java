@@ -6,6 +6,7 @@ import com.stackidentity.rae.app.connector.Consumers;
 import com.stackidentity.rae.app.connector.Producer;
 import com.stackidentity.rae.app.control.ControlStream;
 import com.stackidentity.rae.app.control.model.RuleControlEvent;
+import com.stackidentity.rae.app.extension.EncryptionKeyValidation;
 import com.stackidentity.rae.app.serde.StringSchemaSerDe;
 import com.stackidentity.rae.app.transformer.*;
 import lombok.extern.slf4j.Slf4j;
@@ -78,6 +79,7 @@ public class JobConfigurator {
         cep.registerExtension("json:getString", io.siddhi.extension.execution.json.function.GetStringJSONFunctionExtension.class);
         cep.registerExtension("json:setElement", io.siddhi.extension.execution.json.function.SetElementJSONFunctionExtension.class);
         cep.registerExtension("json:tokenizeAsObject", io.siddhi.extension.execution.json.JsonTokenizerAsObjectStreamProcessorFunction.class);
+        cep.registerExtension("enc:isEncryptionKeyValid", EncryptionKeyValidation.class);
         this.cep = cep;
         return cep;
     }
