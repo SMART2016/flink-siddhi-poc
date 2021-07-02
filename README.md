@@ -147,10 +147,23 @@
           - **Solution:**   The issue was due to mismatched parallalism on the control operator and other operators not 
           clear on this completely , but by setting the parallaism to 1 at the flink execution environment , it fixed the 
           issue.   
-               
-               
+          
+   - **Problem: Data flow graph is not visible without web UI in local IDE environment.**
+        - To enable Web-UI on Ide do below:
+            - Add maven dependency as below:
+            -       <dependency>
+                         <groupId>org.apache.flink</groupId>
+                         <artifactId>flink-runtime-web_2.11</artifactId>
+                         <version>${flink.version}</version>
+                    </dependency>
+                            
+            - Add below code for setting stream execution evironment:
+            -       Configuration config = new Configuration();
+                    config.setBoolean(ConfigConstants.LOCAL_START_WEBSERVER, true);
+                    env = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(config);
             
-                
+   
+              
 ### Refs
        - https://blogs.oracle.com/javamagazine/streaming-analytics-with-java-and-apache-flink
        - https://stackoverflow.com/questions/54672599/json-file-data-into-kafka-topic

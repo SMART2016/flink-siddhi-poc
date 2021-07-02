@@ -10,6 +10,9 @@ import com.stackidentity.rae.app.extension.EncryptionKeyValidation;
 import com.stackidentity.rae.app.serde.StringSchemaSerDe;
 import com.stackidentity.rae.app.transformer.*;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.flink.configuration.ConfigConstants;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.runtime.state.filesystem.FsStateBackend;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
@@ -37,6 +40,9 @@ public class JobConfigurator {
         this.config = config;
     }
 
+    /**
+     * Initializes the transformers for Raw events from flink sources.
+     */
     public void initTransformers() {
         eventTranformRepo.put("s3-access-log", new S3AccessLog());
         eventTranformRepo.put("s3-access-log-record", new S3AccessLogRecord());
@@ -56,16 +62,47 @@ public class JobConfigurator {
      * @return StreamExecutionEnvironment
      */
     public StreamExecutionEnvironment getConfiguredFlinkEnvironment() {
-        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        StreamExecutionEnvironment env = null;
+        if(config.isEnableLocalUI()){
+            System.out.println("--- Enabling Web UI Stream Execution Environment ---");
+            Configuration config = new Configuration();
+            config.setBoolean(ConfigConstants.LOCAL_START_WEBSERVER, true);
+            env = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(config);
+        }else{
+            System.out.println("--- Enabling Simple Execution Environment ---");
+            env = StreamExecutionEnvironment.getExecutionEnvironment();
+        }
+
         this.env = env;
         //Set Time characteristics default is EventTime and it expects proper watermarking to process the data
         env.setStreamTimeCharacteristic(config.getFlinkStreamTimeCharacteristic());
         env.setParallelism(config.getFlinkJobParallelism());
         //ExecutionConfig executionConfig = env.getConfig();
+        configureCheckpointing();
         initTransformers();
+
+        //Statebackend for checkpointing and persisting state
+        env.setStateBackend(new FsStateBackend("file:///Users/dipanjan/work/stackidentity/flink-siddhi-poc/backup"));
+
+
         return env;
     }
 
+    /**
+     * Checkpoint configuration ...
+     */
+    private void configureCheckpointing(){
+        if (config.isCheckPointEnabled()) {
+            env.enableCheckpointing(config.getFlinkJobCheckpointInterval());
+        }
+
+        env.getCheckpointConfig().setCheckpointingMode(config.getFlinkJobCheckpointMode());
+        env.getCheckpointConfig().setTolerableCheckpointFailureNumber(config.getFailureTolerableNumber());
+
+        env.getCheckpointConfig().setMinPauseBetweenCheckpoints(config.getMinPauseBetweenCheckpoint());
+        //env.getCheckpointConfig().setCheckpointTimeout(config.getCheckPointTimeout());
+        //env.getCheckpointConfig().setMaxConcurrentCheckpoints(config.getMaxConcurrentCheckpoints());
+    }
     /**
      * Initialize Siddhi CEP env with the required extensions
      *

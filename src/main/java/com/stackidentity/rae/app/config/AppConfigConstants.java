@@ -17,5 +17,12 @@ public interface AppConfigConstants {
     String FLINK_JOB_GROUP_ID = "flink.job.groupId";
     String FLINK_JOB_PARALLELISM = "flink.job.parallelism";
 
+    String FLINK_JOB_CHECKPOINT_INTERVAL_MS     = "flink.job.checkpoint.intervalMillis";
+    String FLINK_JOB_CHECKPOINT_ENABLE          = "flink.job.checkpoint.enable";
+    String FLINK_JOB_CHECKPOINT_FAILURE_TOLERABLE_NUMBER = "flink.job.checkpoint.failureTolerableNumber";
+    String FLINK_JOB_CHECKPOINT_MODE            = "flink.job.checkpoint.mode";
+    String FLINK_JOB_CHECKPOINT_PAUSE           = "flink.job.checkpoint.minPauseBetween";
+
+    String FLINK_ENABLE_LOCAL_WEBUI             = "flink.enableLocalWebUI";
 
 }

@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -54,6 +55,23 @@ public class JobConfig implements AppConfigConstants {
     @Value("${" + FLINK_STREAM_TIME_CHARACTERISTIC + "}")
     private TimeCharacteristic flinkStreamTimeCharacteristic;
 
+    @Value("${" + FLINK_JOB_CHECKPOINT_INTERVAL_MS + "}")
+    private long flinkJobCheckpointInterval;
+
+    @Value("${" + FLINK_JOB_CHECKPOINT_ENABLE + "}")
+    private boolean checkPointEnabled;
+
+    @Value("${" + FLINK_JOB_CHECKPOINT_FAILURE_TOLERABLE_NUMBER + "}")
+    private int failureTolerableNumber;
+
+    @Value("${" + FLINK_JOB_CHECKPOINT_MODE + "}")
+    private CheckpointingMode flinkJobCheckpointMode;
+
+    @Value("${" + FLINK_JOB_CHECKPOINT_PAUSE + "}")
+    private long minPauseBetweenCheckpoint;
+
+    @Value("${" + FLINK_ENABLE_LOCAL_WEBUI + "}")
+    private boolean enableLocalUI;
 
     @Autowired
     private EventSources eventSources;

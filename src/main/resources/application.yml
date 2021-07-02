@@ -1,11 +1,17 @@
 ---
 flink:
   streamTimeCharacteristic: "ProcessingTime" ## ProcessingTime|IngestionTime|EventTime
-  checkpointSnapshotTime: 1000
+  enableLocalWebUI: "true"
   job:
     groupId: "${spring.application.name}-group"
     name: "${spring.application.name}"
     parallelism: "1"
+    checkpoint:
+      intervalMillis: "10000"
+      enable: "true"
+      failureTolerableNumber: 2147483647
+      mode: "AT_LEAST_ONCE" # EXACTLY_ONCE|AT_LEAST_ONCE
+      minPauseBetween: "60000"
 
 kafka:
   bootstrapServers: "localhost:9092"
