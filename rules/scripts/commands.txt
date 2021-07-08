@@ -1,6 +1,6 @@
 ./kafka-console-producer.sh --broker-list localhost:9092 --topic si-simple-rules < /Users/dipanjan/work/stackidentity/flink-siddhi-poc/rules/S3/S3AccesslogEnabledForCloudtrail.txt
 ./kafka-console-producer.sh --broker-list localhost:9092 --topic si-simple-rules < /Users/dipanjan/work/stackidentity/flink-siddhi-poc/rules/S3/S3PublicAccess.txt
 ./kafka-console-producer.sh --broker-list localhost:9092 --topic si-simple-rules < /Users/dipanjan/work/stackidentity/flink-siddhi-poc/rules/S3/S3BucketEncryption.txt
-./kafka-console-producer.sh --broker-list localhost:9092 --topic si-simple-rules < /Users/dipanjan/work/stackidentity/flink-siddhi-poc/rules/S3/S3CloudTrailPublicAccess.txt
-./kafka-console-producer.sh --broker-list localhost:9092 --topic si-simple-rules < /Users/dipanjan/work/stackidentity/flink-siddhi-poc/rules/S3/S3BucketHttps.txt
-./kafka-console-producer.sh --broker-list localhost:9092 --topic si-simple-rules < /Users/dipanjan/work/stackidentity/flink-siddhi-poc/rules/S3/S3PublicReadAccess.txt
+./kafka-console-producer.sh --broker-list kafka:9092 --topic si-simple-rules < /Users/dipanjan/work/stackidentity/flink-siddhi-poc/rules/S3/S3CloudTrailPublicAccess.txt
+./kafka-console-producer.sh --broker-list kafka:9092 --topic si-simple-rules < /Users/dipanjan/work/stackidentity/flink-siddhi-poc/rules/S3/S3BucketHttps.txt
+./kafka-console-producer.sh --broker-list kafka:9092 --topic si-simple-rules < /Users/dipanjan/work/stackidentity/flink-siddhi-poc/rules/S3/S3PublicReadAccess.txt

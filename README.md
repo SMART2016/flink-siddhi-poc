@@ -48,7 +48,10 @@
 ### Running the Flink app (Flink app running as cluster localhost:8081):
     - For the building the JOB jar used shade to package jar dependencies and create a fat jar.
         - mvn clean package
-    - docker-compose up
+    - Run docker with existing images:
+         - docker-compose up
+    - Clean all docker env and run:
+        - docker compose down && docker image prune -a && docker compose build --no-cache && docker compose up
     - create jar of the flink app (Job) as below:
         - mvn clean package
     

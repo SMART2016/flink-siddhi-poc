@@ -12,8 +12,10 @@ import com.stackidentity.rae.app.transformer.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.configuration.ConfigConstants;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
 import org.apache.flink.runtime.state.filesystem.FsStateBackend;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
@@ -78,13 +80,14 @@ public class JobConfigurator {
         env.setStreamTimeCharacteristic(config.getFlinkStreamTimeCharacteristic());
         env.setParallelism(config.getFlinkJobParallelism());
         //ExecutionConfig executionConfig = env.getConfig();
-        configureCheckpointing();
+        if (config.isCheckPointEnabled()) {
+            configureCheckpointing();
+        }
         initTransformers();
 
-        //Statebackend for checkpointing and persisting state
-        env.setStateBackend(new FsStateBackend("file:///Users/dipanjan/work/stackidentity/flink-siddhi-poc/backup"));
 
 
+        //env.getStreamGraph().setSavepointRestoreSettings(SavepointRestoreSettings.forPath("/Users/dipanjan/work/stackidentity/flink-siddhi-poc/backup/3f7a11e7991af7be9026a54f873cead5"));
         return env;
     }
 
@@ -92,16 +95,19 @@ public class JobConfigurator {
      * Checkpoint configuration ...
      */
     private void configureCheckpointing(){
-        if (config.isCheckPointEnabled()) {
-            env.enableCheckpointing(config.getFlinkJobCheckpointInterval());
-        }
+
+        env.enableCheckpointing(config.getFlinkJobCheckpointInterval());
 
         env.getCheckpointConfig().setCheckpointingMode(config.getFlinkJobCheckpointMode());
         env.getCheckpointConfig().setTolerableCheckpointFailureNumber(config.getFailureTolerableNumber());
 
         env.getCheckpointConfig().setMinPauseBetweenCheckpoints(config.getMinPauseBetweenCheckpoint());
+        env.getCheckpointConfig().enableExternalizedCheckpoints(CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
         //env.getCheckpointConfig().setCheckpointTimeout(config.getCheckPointTimeout());
         //env.getCheckpointConfig().setMaxConcurrentCheckpoints(config.getMaxConcurrentCheckpoints());
+        env.getCheckpointConfig().setPreferCheckpointForRecovery(true);
+        //Statebackend for checkpointing and persisting state
+        env.setStateBackend(new FsStateBackend("file:///tmp/checkpoint"));
     }
     /**
      * Initialize Siddhi CEP env with the required extensions
@@ -113,10 +119,18 @@ public class JobConfigurator {
     public SiddhiCEP initSiddhiCEPEnv(StreamExecutionEnvironment env) {
         SiddhiCEP cep = SiddhiCEP.getSiddhiEnvironment(env);
         cep.registerExtension("json:toObject", io.siddhi.extension.execution.json.function.ToJSONObjectFunctionExtension.class);
+        cep.registerExtension("json:toString", io.siddhi.extension.execution.json.function.ToJSONStringFunctionExtension.class);
         cep.registerExtension("json:getString", io.siddhi.extension.execution.json.function.GetStringJSONFunctionExtension.class);
         cep.registerExtension("json:setElement", io.siddhi.extension.execution.json.function.SetElementJSONFunctionExtension.class);
         cep.registerExtension("json:tokenizeAsObject", io.siddhi.extension.execution.json.JsonTokenizerAsObjectStreamProcessorFunction.class);
         cep.registerExtension("enc:isEncryptionKeyValid", EncryptionKeyValidation.class);
+        cep.registerExtension("json:getBool", io.siddhi.extension.execution.json.function.GetBoolJSONFunctionExtension.class);
+        cep.registerExtension("json:getFloat", io.siddhi.extension.execution.json.function.GetFloatJSONFunctionExtension.class);
+        cep.registerExtension("json:getInt", io.siddhi.extension.execution.json.function.GetIntJSONFunctionExtension.class);
+        cep.registerExtension("json:getObject", io.siddhi.extension.execution.json.function.GetObjectJSONFunctionExtension.class);
+        cep.registerExtension("json:isExists", io.siddhi.extension.execution.json.function.IsExistsJSONFunctionExtension.class);
+
+
         this.cep = cep;
         return cep;
     }

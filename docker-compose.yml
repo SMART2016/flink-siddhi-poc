@@ -3,10 +3,10 @@ version: "3"
 services:
   jobmanager:
     platform: linux/x86_64
-    image: flink:1.11.0-scala_2.11
+    image: flink:1.11.2-scala_2.11
     ports:
       - "8081:8081"
-    #      - "5005:5005"
+##      - "5006:5006"
     command: jobmanager
     environment:
       - |
@@ -16,14 +16,19 @@ services:
         heartbeat.timeout: 2000000
         akka.client.timeout: 200min
         akka.ask.timeout: 200min
-    #       env.java.opts.taskmanager: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5006"
+        state.backend: filesystem
+        state.checkpoints.dir: file:///tmp/checkpoint
+        state.savepoints.dir: file:///tmp/savepoint
+##        env.java.opts.taskmanager: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5006"
+    volumes:
+      - ./backup:/tmp/checkpoint
     networks:
       - bridge
 
 
   taskmanager:
     platform: linux/x86_64
-    image: flink:1.11.0-scala_2.11
+    image: flink:1.11.2-scala_2.11
     depends_on:
       - jobmanager
     command: taskmanager
@@ -35,13 +40,14 @@ services:
         heartbeat.timeout: 2000000
         akka.client.timeout: 10min
         akka.ask.timeout: 10min
-    #        env.java.opts.taskmanager: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5006"
-
     networks:
       - bridge
+#        env.java.opts.taskmanager: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005"
+
+
 
   kafka:
-    build: ./docker/kafka-docker
+    image: dmazumde/kafka-mac-m1:1.0
     hostname: kafka
     ports:
       - "9092:9092"

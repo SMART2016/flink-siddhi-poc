@@ -1,7 +1,7 @@
 ---
 flink:
   streamTimeCharacteristic: "ProcessingTime" ## ProcessingTime|IngestionTime|EventTime
-  enableLocalWebUI: "true"
+  enableLocalWebUI: "false" ## This should not true when running in cluster or session mode , only will be true for local IDE.
   job:
     groupId: "${spring.application.name}-group"
     name: "${spring.application.name}"
@@ -14,8 +14,8 @@ flink:
       minPauseBetween: "60000"
 
 kafka:
-  bootstrapServers: "localhost:9092"
-  zookeeperConnect: "localhost:2181"
+  bootstrapServers: "kafka:9092"
+  zookeeperConnect: "zookeeper:2181"
   events:                                 ## Event will have a main source stream which will be split into
     #multiple substreams based on the below configuration of substream
     #list per source.
