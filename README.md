@@ -164,6 +164,19 @@
             -       Configuration config = new Configuration();
                     config.setBoolean(ConfigConstants.LOCAL_START_WEBSERVER, true);
                     env = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(config);
+	
+	
+   - **Problem: Where to provide Checkpointing configuration ?**
+      - On the Flink webUi while adding a Job we can provide the location of the checkpoint metadata in the savepoint 
+            textbox of the web UI.
+	
+   - **Maven blocking pluging and other repositories during CI**
+    - https://stackoverflow.com/questions/67001968/how-to-disable-maven-blocking-external-http-repositores
+    
+  - **Problem: Running Flink application as a standalone JVM with java -jar <Flink-App-jar>**
+    - https://liangjunjiang.medium.com/run-flink-app-jar-538712ab84d4      
+            
+ 
             
    
               
