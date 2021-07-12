@@ -329,7 +329,9 @@ public class JobConfigurator {
             List<DataStream<?>> lst = splittedStreams.get(subStreamName);
             //TODO: Debugging
             ruleSubStream.print();
-            lst.add(1, ruleSubStream);
+            if(lst != null && lst.size() != 0) {
+                lst.add(1, ruleSubStream);
+            }
         });
 
         return splittedStreams;
